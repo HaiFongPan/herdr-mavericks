@@ -4,7 +4,7 @@
 import { div } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { run, layout, shared, setShared, window as appWindow } from "herdr";
-import { M, FONT, gradient, hairline, icon } from "./kit.js";
+import { M, FONT, gradient, hairline, icon, toolbarButton } from "./kit.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -43,21 +43,11 @@ export default class Brand {
       .items_center()
       .child(gradient(M.sidebarTop, M.sidebarBottom, 180))
       .child(hairline(M.hairline, "bottom"))
-      .child(div().relative().flex_1().min_w(0).truncate().text_size(12).font_semibold().text_color(M.text).child(collapsed ? "" : "Herdr"))
+      .child(div().relative().flex_1())
       .when(!(collapsed && mac), el => el.child(
-        h_flex()
-          .id("mv-sidebar-toggle")
-          .relative()
-          .flex_none()
-          .w(20)
-          .h(18)
-          .items_center()
-          .justify_center()
-          .rounded(3)
-          .tooltip(collapsed ? "Show Sidebar" : "Hide Sidebar")
-          .hover(s => s.bg("#dcdcdc"))
-          .on_click(toggle)
-          .child(icon("sidebar", 13, M.textMuted)),
+        toolbarButton("mv-sidebar-toggle", icon("sidebar", 14, M.textMuted), toggle, {
+          tooltip: collapsed ? "Show Sidebar" : "Hide Sidebar",
+        }),
       ));
   }
 }

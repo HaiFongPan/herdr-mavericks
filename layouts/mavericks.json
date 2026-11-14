@@ -26,8 +26,8 @@
       "size": {
         "px": 220
       },
-      "min": 180,
-      "max": 420,
+      "min": 40,
+      "max": 480,
       "children": [
         {
           "id": "brand",
