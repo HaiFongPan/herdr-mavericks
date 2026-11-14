@@ -1,5 +1,7 @@
 # Herdr · Mavericks
 
+[English](README.en.md) · 中文
+
 把 [Herdr](https://herdr.dev) 换成 OS X 10.9 Mavericks 时代的 macOS 应用外观：
 一行式窗口 chrome（交通灯 + 视图按钮）、Safari 式标签栏、Aqua 工具栏按钮、Finder 式侧栏、
 原生窗口标题栏样式的 pane 标题、系统蓝选中与 Helvetica Neue。

@@ -43,7 +43,7 @@ for mod in mavericks mavericks-menu mavericks-spaces mavericks-agents; do
   place "$src/mods/$mod" "$dest/mods/$mod"
 done
 
-echo "已安装到 $dest（$mode）"
+echo "已安装到 ${dest}（${mode}）"
 echo
 echo "切换布局："
 echo "  herdr-app do layout.switch --name mavericks"
