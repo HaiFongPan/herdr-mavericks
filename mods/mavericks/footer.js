@@ -2,12 +2,13 @@
 
 import { h_flex } from "gpui-base";
 import { run } from "herdr";
-import { M, FONT, gradient, hairline, icon } from "./kit.js";
+import { palette, FONT, gradient, hairline, icon } from "./kit.js";
 
 export default class Footer {
   init() {}
 
   render() {
+    const M = palette();
     const button = (id, name, label, action) => h_flex()
       .id(id)
       .relative()
@@ -18,7 +19,7 @@ export default class Footer {
       .justify_center()
       .rounded(3)
       .tooltip(label)
-      .hover(s => s.bg("#d8d8d8"))
+      .hover(s => s.bg(M.footerHover))
       .on_click(action)
       .child(icon(name, 12, M.textMuted));
 

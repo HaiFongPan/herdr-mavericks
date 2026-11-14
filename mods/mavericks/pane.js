@@ -5,7 +5,7 @@
 import { div, svg, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { panes, props, run, layout, home, theme } from "herdr";
-import { M, FONT, gradient, hairline, icon } from "./kit.js";
+import { palette, FONT, gradient, hairline, icon } from "./kit.js";
 
 function paneFrame(node) {
   if (!node || node.hidden) return null;
@@ -36,7 +36,7 @@ export default class Pane {
   }
 
   render() {
-    const t = theme();
+    const t = theme(), M = palette();
     const p = this.me();
     if (!p) return div();
     const pane = p.pane;
@@ -62,7 +62,7 @@ export default class Pane {
       .items_center()
       .justify_center()
       .rounded(4)
-      .hover(s => s.bg("#dedede"))
+      .hover(s => s.bg(M.paneButtonHover))
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click((_e, cx) => { cx.stopPropagation(); run(command, args); })
       .tooltip(tooltip)
@@ -79,8 +79,8 @@ export default class Pane {
       .font_family(FONT)
       .when(!bottom, el => el.border_b(1))
       .when(bottom, el => el.border_t(1))
-      .border_color("#a8a8a8")
-      .child(gradient(on ? "#f2f2f2" : "#f5f5f5", on ? "#e4e4e4" : "#ededed", 180))
+      .border_color(M.paneBorder)
+      .child(gradient(on ? M.paneActiveTop : M.paneIdleTop, on ? M.paneActiveBottom : M.paneIdleBottom, 180))
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click(() => run("pane.focus", { pane }))
       .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })

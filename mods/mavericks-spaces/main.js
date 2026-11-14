@@ -9,14 +9,43 @@ import { spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, set
 
 // Mavericks 的字体与少量 10.9 颜色（与 mods/mavericks 的 kit.js 同源）。
 const FONT = "Helvetica Neue";
-const MV = {
+const MV_LIGHT = {
   accentLight: "#6fa8e8",
   accentDark: "#2c62b8",
   sidebarTop: "#ededed",
   sidebarBottom: "#e3e3e3",
   heading: "#6f6f6f",
   divider: "#c5c5c5",
+  text: "#262626",
 };
+// 深色外观的同一组颜色：与 mods/mavericks/kit.js 的 DARK 对齐。
+const MV_DARK = {
+  accentLight: "#5f97e4",
+  accentDark: "#2b5cae",
+  sidebarTop: "#3a3a3a",
+  sidebarBottom: "#323232",
+  heading: "#9a9a9a",
+  divider: "#252525",
+  text: "#eaeaea",
+};
+
+// #rrggbb 的感知亮度，0（黑）到 1（白）。
+function luminance(hex) {
+  const m = /^#?([0-9a-f]{6})/i.exec(String(hex ?? ""));
+  if (!m) return 1;
+  const n = parseInt(m[1], 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+}
+
+let picked = { key: null, palette: MV_LIGHT };
+
+/** 当前外观的侧栏配色：按生效主题 `chrome` 的亮度选浅色或深色。 */
+function mv() {
+  const t = theme() ?? {};
+  const key = `${t.chrome ?? ""}|${t.foreground ?? ""}`;
+  if (key !== picked.key) picked = { key, palette: luminance(t.chrome) > 0.5 ? MV_LIGHT : MV_DARK };
+  return picked.palette;
+}
 
 const RECT = () =>
   PathBuilder.fill().move_to("0%", "0%").line_to("100%", "0%").line_to("100%", "100%").line_to("0%", "100%").close().build();
@@ -75,6 +104,14 @@ export function tone(t, status) {
 export default class Spaces extends View {
   init(_props, cx) {
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
+    // 换主题或系统外观不会自动重绘布局里的 mod：每秒比一次主题签名，变了才 notify。
+    let seenTheme = `${theme()?.chrome}|${theme()?.foreground}`;
+    cx.timer.every(1000, (cx) => {
+      const now = `${theme()?.chrome}|${theme()?.foreground}`;
+      if (now === seenTheme) return;
+      seenTheme = now;
+      cx.notify();
+    });
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
     this.pending = new Set(); // where()s to look at next
@@ -413,6 +450,7 @@ export default class Spaces extends View {
   }
 
   row({ w, i, g, tree }, t) {
+    const MV = mv();
     const on = w.active;
     const fromIndex = this.pressed === null ? -1 : spaces().findIndex(s => s.id === this.pressed);
     const colors = shared("space.colors") ?? {};
@@ -471,6 +509,7 @@ export default class Spaces extends View {
   }
 
   compact({ w, i }, t) {
+    const MV = mv();
     const colors = shared("space.colors") ?? {};
     const color = colors[w.id] ?? "ansi6";
     const fill = color.startsWith("#") ? color : (MARK[color] ?? t[color]);
@@ -496,7 +535,7 @@ export default class Spaces extends View {
   }
 
   render() {
-    const t = theme();
+    const t = theme(), MV = mv();
     const collapsed = narrow();
     const palette = ["ansi6", "ansi3", "ansi4", "ansi5", "ansi2", "ansi1"];
     const sp = spaces();

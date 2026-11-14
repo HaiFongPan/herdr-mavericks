@@ -5,7 +5,7 @@
 import { div, svg, image } from "gpui-kit";
 import { h_flex, ScrollHandle } from "gpui-base";
 import { spaces, panes, run, openOverlay, layout, theme, settings, window as win } from "herdr";
-import { M, FONT, gradient, hairline, icon, toolbarButton, ui } from "./kit.js";
+import { palette, FONT, gradient, hairline, icon, toolbarButton, ui } from "./kit.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -27,7 +27,7 @@ export default class Chrome {
   // 一个标签：活动是白色圆角卡片，其余透明；关闭按钮与状态槽固定占位。
   tab(space, shown, active, c, i) {
     const stop = (_e, cx) => cx.stop_propagation();
-    const t = theme();
+    const t = theme(), M = palette();
     const program = panes().find(p => p.tab === c.id && p.program?.agent)?.program ?? panes().find(p => p.tab === c.id)?.program;
     const name = /^tb\d+$/.test(c.name) ? program?.name ?? "Terminal" : c.name;
     const on = c.active;
@@ -47,7 +47,7 @@ export default class Chrome {
       .font_family(FONT)
       .text_color(on ? M.text : M.textMuted)
       .when(on, el => el.child(gradient(M.tabActiveTop, M.tabActiveBottom, 180).shadow_xs()))
-      .when(!on, el => el.hover(s => s.bg("#e2e2e2")))
+      .when(!on, el => el.hover(s => s.bg(M.tabHover)))
       .when(i <= active, el => el.on_size_change((_size, cx) => { this.scroll.scroll_to_item(active); cx.notify(); }))
       .on_mouse_down("left", (e, cx) => {
         cx.stop_propagation();
@@ -102,7 +102,7 @@ export default class Chrome {
             .items_center()
             .justify_center()
             .rounded(3)
-            .when(on || hot, el => el.hover(s => s.bg("#d5d5d5")))
+            .when(on || hot, el => el.hover(s => s.bg(M.tabCloseHover)))
             .on_mouse_down("left", stop)
             .on_click((_e, cx) => { cx.stopPropagation(); run("tab.close", { id: c.id }); })
             .child(icon("close", 9, on || hot ? M.textDim : "#00000000"))),
@@ -138,6 +138,7 @@ export default class Chrome {
   }
 
   render() {
+    const M = palette();
     const root = layout();
     const panel = find(root, "panel");
     const panelBody = find(root, "panel-body");

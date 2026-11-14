@@ -4,7 +4,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { run, props, closeOverlay, openOverlay, theme, keys, terminals, spaces, panes, exec } from "herdr";
-import { M, FONT, gradient } from "./kit.js";
+import { palette, FONT, gradient } from "./kit.js";
 
 function place(s) {
   const tabs = new Set((s.tabs ?? []).map(c => c.id));
@@ -104,7 +104,7 @@ export default class MavericksMenu extends View {
   }
 
   render(cx) {
-    const t = theme();
+    const t = theme(), M = palette();
     const list = items(props(), this.git);
     return v_flex()
       .id("mv-menu")
@@ -126,7 +126,7 @@ export default class MavericksMenu extends View {
         list.map((it, i) =>
           v_flex()
             .relative()
-            .when(i > 0 && isSeparator(it, list[i - 1]), el => el.child(div().mx(6).my(3).h(1).bg("#d6d6d6")))
+            .when(i > 0 && isSeparator(it, list[i - 1]), el => el.child(div().mx(6).my(3).h(1).bg(M.separator)))
             .child(
               h_flex()
                 .id(`mv-mi-${i}`)
@@ -139,7 +139,7 @@ export default class MavericksMenu extends View {
                 .gap(18)
                 .text_color(M.text)
                 .when(i === this.at, el => el.child(gradient(M.accentLight, M.accentDark, 180)))
-                .when(i !== this.at, el => el.hover(s => s.bg("#e2e2e2")))
+                .when(i !== this.at, el => el.hover(s => s.bg(M.tabHover)))
                 .on_click((_e, cx) => this.choose(i, cx))
                 .child(div().relative().flex_1().child(it[0]))
                 .child(div().relative().text_size(11).text_color(i === this.at ? "#ffffffb0" : M.textDim).child(shortcut(it[1], it[2]))),

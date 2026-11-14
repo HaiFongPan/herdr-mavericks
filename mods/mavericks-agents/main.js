@@ -6,7 +6,7 @@ import { agents, terminals, panes, focused, spaces, run, theme, shared, setShare
 
 // Mavericks 的字体与少量 10.9 颜色（与 mods/mavericks 的 kit.js 同源）。
 const FONT = "Helvetica Neue";
-const MV = {
+const MV_LIGHT = {
   accentLight: "#6fa8e8",
   accentDark: "#2c62b8",
   sidebarTop: "#ededed",
@@ -15,6 +15,34 @@ const MV = {
   divider: "#c5c5c5",
   text: "#262626",
 };
+// 深色外观的同一组颜色：与 mods/mavericks/kit.js 的 DARK 对齐。
+const MV_DARK = {
+  accentLight: "#5f97e4",
+  accentDark: "#2b5cae",
+  sidebarTop: "#3a3a3a",
+  sidebarBottom: "#323232",
+  heading: "#9a9a9a",
+  divider: "#252525",
+  text: "#eaeaea",
+};
+
+// #rrggbb 的感知亮度，0（黑）到 1（白）。
+function luminance(hex) {
+  const m = /^#?([0-9a-f]{6})/i.exec(String(hex ?? ""));
+  if (!m) return 1;
+  const n = parseInt(m[1], 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+}
+
+let picked = { key: null, palette: MV_LIGHT };
+
+/** 当前外观的侧栏配色：按生效主题 `chrome` 的亮度选浅色或深色。 */
+function mv() {
+  const t = theme() ?? {};
+  const key = `${t.chrome ?? ""}|${t.foreground ?? ""}`;
+  if (key !== picked.key) picked = { key, palette: luminance(t.chrome) > 0.5 ? MV_LIGHT : MV_DARK };
+  return picked.palette;
+}
 
 const RECT = () =>
   PathBuilder.fill().move_to("0%", "0%").line_to("100%", "0%").line_to("100%", "100%").line_to("0%", "100%").close().build();
@@ -104,6 +132,14 @@ function icon(p, size, color) {
 export default class Agents extends View {
   init(_props, cx) {
     if (props()?.sortMenu) return;
+    // 换主题或系统外观不会自动重绘布局里的 mod：每秒比一次主题签名，变了才 notify。
+    let seenTheme = `${theme()?.chrome}|${theme()?.foreground}`;
+    cx.timer.every(1000, (cx) => {
+      const now = `${theme()?.chrome}|${theme()?.foreground}`;
+      if (now === seenTheme) return;
+      seenTheme = now;
+      cx.notify();
+    });
     this.folded = new Set();
     // Each agent's last state and when it changed (ms), kept across restarts.
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
@@ -159,6 +195,7 @@ export default class Agents extends View {
   }
 
   sortMenu(t) {
+    const MV = mv();
     const on = sortOf().id;
     return v_flex()
       .w_full()
@@ -176,7 +213,7 @@ export default class Agents extends View {
         .items_center()
         .text_color(MV.text)
         .when(s.id === on, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
-        .when(s.id !== on, (el) => el.hover((el) => el.bg("#e2e2e2")))
+        .when(s.id !== on, (el) => el.hover((el) => el.bg(t.hover)))
         .on_click(() => {
           setShared("agents.sort", s.id);
           closeOverlay(props().overlay);
@@ -240,7 +277,7 @@ export default class Agents extends View {
   }
 
   render(cx) {
-    const t = theme();
+    const t = theme(), MV = mv();
     if (props()?.sortMenu) return this.sortMenu(t);
     const collapsed = narrow();
     const sort = sortOf();

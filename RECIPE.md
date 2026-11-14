@@ -33,12 +33,18 @@
    左侧按 `traffic_lights[0] + 64` 留出交通灯位（侧栏拖窄时按剩余宽度补），标签不会压到交通灯。
 3. **pane 区**：每个 pane 顶部 24px 的标题栏——聚焦时 `#f2f2f2 → #e4e4e4` 深色标题，
    失焦时更淡；12px 程序图标、11.5px 标题、右侧 `~/…` 路径；悬停露出分屏 / 缩放 / 关闭。
-   pane 自己没有边框：pane 之间、pane 与右侧面板之间是 1px 间隙，露出 `work-body` 的 `#b8b8b8`。
+   pane 自己没有边框：pane 之间、pane 与右侧面板之间是 1px 间隙，露出 `work-body` 的主题 `border` 色
+   （浅色 `#b8b8b8` / 深色 `#1d1d1d`）。
 4. **状态栏，22px**：`#ededed → #dedede`，顶部 1px `#b0b0b0`。
    从左到右：终端图标、`~/路径 · 分支`、标签数、working / blocked / done 的 agent 计数点。
    Settings / Add machine 在侧栏底部，与这条状态栏同高。
 
-终端本身是白底黑字（Terminal.app 的 Basic 配色），Menlo 12。
+终端浅色外观是白底黑字（Terminal.app 的 Basic 配色），深色外观是黑底（Terminal.app Homebrew），Menlo 12。
+
+深色外观（系统深色，或在主题菜单里选 `mavericks-dark`）是同一套 10.9 结构换成深灰阶：
+侧栏 `#3a3a3a → #323232`、工具栏 `#424242 → #353535`、活动标签 `#4c4c4c → #424242`、
+pane 标题 `#4a4a4a → #3f3f3f`（失焦更暗）、状态栏 `#3a3a3a → #2f2f2f`，描边一律换成深色，
+文字 `#eaeaea` / `#b3b3b3` / `#838383`，选中的系统蓝亮一档（`#5f97e4 → #2b5cae`）压在深色侧栏上。
 
 ## 它怎么动
 
@@ -62,16 +68,19 @@
 
 ## 怎么搭的
 
-- 布局 `layouts/mavericks.json`：`titlebar: "none"`、`traffic_lights: [12, 13]`、`theme: "mavericks"`、
+- 布局 `layouts/mavericks.json`：`titlebar: "none"`、`traffic_lights: [12, 13]`、
+  `theme: {light: "mavericks", dark: "mavericks-dark"}`、`background: "canvas"`、`divider: {color: "border"}`、
   `font: Menlo`、`font_size: 12`、`ui_font: Helvetica Neue`。
   树：`row[ column(sidebar, 220)[block(brand, 40, window_drag), spaces, agents, block(footer, 22)] →
   column(work)[ block(chrome, 40, window_drag),
   row(work-body)[ block(tab: active, pane: {gap: 1, border: 0, focus: 0, header: 24}),
   column(panel, 300, hidden)[stack[files, changes]] ], block(status, 22) ] ]`。
   标签页在 chrome 里，没有单独的标签栏；侧栏与工作区之间是 root 的 `divider`（1px）。
-- `mods/mavericks`：一个 mod 三个 role，`main.js` 按 `props.role` 分派到 `chrome.js`（含标签页）、
-  `pane.js`、`status.js`（含 Settings / Add machine）。`kit.js` 是共用的 10.9 调色板、渐变层
+- `mods/mavericks`：一个 mod 五个 role，`main.js` 按 `props.role` 分派到 `brand.js`、`chrome.js`（含标签页）、
+  `pane.js`、`status.js`、`footer.js`（含 Settings / Add machine）。`kit.js` 是共用的 10.9 调色板、渐变层
   （`window.paint_path` + `Background.linear_gradient`）、1px 细线、Aqua 按钮、分段控件和图标。
+  调色板有浅色 `LIGHT` 与深色 `DARK` 两份，`palette()` 按生效主题 `theme().chrome` 的亮度挑一份：
+  主题色表里 chrome 的深浅就是外观的开关，不用另记状态。
   图标都是 16×16 的 `currentColor` 线稿，放在 `assets/icons/`。
 - `mods/mavericks-spaces` / `mods/mavericks-agents`：Herdr 0.1.15 的 `spaces` / `agents` 克隆，
   只动外观（字体、行高、圆角、蓝色选中、分组标题）；worktree、机器分组、git 状态、拖拽、折叠等逻辑原样保留。
@@ -85,9 +94,11 @@
   ansi 0–15 是 Terminal.app Basic 的配色；`colors` 覆盖 Herdr 的 chrome / canvas / accent / 状态色。
   `colors.selected` 是 `#6fa8e8`（系统蓝的浅端）：命令面板、Settings 这些 Herdr 自带弹层
   用前景色画行文字，深蓝底上深字看不清，浅一档才读得清。
-- `themes/mavericks-dark.json`：chrome 色同浅色主题，终端换成 Terminal.app Homebrew 的黑底
-  （`#000000` / `#ffffff` 与它的 16 色）。布局的 `theme` 是 `{ light, dark }`，跟随系统外观；
-  也可以在主题菜单里手动选。
+- `themes/mavericks-dark.json`：整窗的深色外观——`colors` 里 chrome `#333333`、canvas `#262626`、
+  raised `#3a3a3a`、hover `#303030`、border `#1d1d1d`、selected `#2f5f9f` 等，终端是
+  Terminal.app Homebrew 的黑底（`#000000` / `#ffffff` 与它的 16 色）。布局的 `theme` 是
+  `{ light, dark }`，跟随系统外观；也可以在主题菜单里手动选。布局里原本写死的
+  `#e9e9e9` / `#b8b8b8` 换成主题 token `canvas` / `border`，pane 间隙和分隔线才会跟着换。
 - 所有尺寸按 zoom 1 写；Herdr 自己缩放布局，字体大小由 `text_size` 跟随。
 
 ## 注意
@@ -100,7 +111,7 @@
 - `mavericks-spaces` / `mavericks-agents` 绑定 Herdr 0.1.15 的内部数据与 helper；升级 Herdr 后先跑
   `herdr-app check`，再对照新版 `spaces` / `agents` 更新。
 - 分隔线只画一层：侧栏与工作区之间是 root `divider`；pane 的 `border` 和 `focus` 都设成 0，
-  pane 之间与 pane/panel 之间靠 `work-body` 的 `background #b8b8b8` 加 1px `gap` 露出来；
+  pane 之间与 pane/panel 之间靠 `work-body` 的 `background: "border"` 加 1px `gap` 露出来；
   工具栏与状态栏各有一条 1px 线。不要再给相邻元素各加一条边——pane 的 focus 边框会和
   divider 相邻成 2px，这是之前踩过的坑。聚焦改由 pane 标题栏的深浅表达。
 - Herdr 的 find bar 是 app 内置，不是 mod，无法改内边距。
@@ -115,6 +126,14 @@
 - `herdr-app do layout.switch --name mavericks` 后，窗口左侧是贯通到底的 220px 侧栏
   （顶部 brand 行留交通灯位、右侧收缩按钮，底部 Settings / Add machine），右侧工作区顶部是
   40px 工具栏（标签页、Files/Changes、分屏、查找、`+`），下面是 24px pane 标题与 22px 状态栏。
+- Herdr 换主题或系统外观时不会重绘布局里的 mod（`theme()` 是活的，但没有视图被叫醒）。
+  所以 `mods/mavericks` 的 `watchAppearance()`，以及 `mavericks-spaces` / `-agents` / `-files` /
+  `-changes` 的 `init` 里，都留了一个每秒一次的签名比对：`chrome|foreground` 变了才 `cx.notify()`，
+  不换外观时不产生重绘。代价是切外观后最多晚约一秒。`herdr-app check` 不做布局，
+  验证外观切换得真在窗口里切一次看。
 - 拖动侧栏边界，标签页起点跟着侧栏右缘移动；侧栏与工作区之间只有 1px 线，pane 交界也只有 1px。
 - 点 brand 行的按钮（或 `cmd-b`）能隐藏/显示侧栏，点 `+` 能开新建菜单，右键标签和空间出现 10.9 式菜单，选中行是蓝色渐变白字。
+- 把 `settings.json` 的 `appearance` 设成 `dark`（或系统切深色）：一秒内侧栏、工具栏、标签、pane 标题、
+  状态栏、Files/Changes 面板一起变深，终端变黑底；切回 `light` 同样整窗变回浅色，
+  不用重开窗口、不用改 mod 文件。
 - 切回 `main` 布局外观与安装前一致。
