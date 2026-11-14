@@ -1,0 +1,182 @@
+{
+  "id": "root",
+  "type": "row",
+  "theme": {
+    "light": "mavericks",
+    "dark": "mavericks-dark"
+  },
+  "font": "Menlo",
+  "font_size": 12,
+  "ui_font": "Helvetica Neue",
+  "titlebar": "none",
+  "traffic_lights": [
+    12,
+    13
+  ],
+  "background": "canvas",
+  "divider": {
+    "width": 1,
+    "color": "border"
+  },
+  "preview": "layouts/mavericks.png",
+  "children": [
+    {
+      "id": "sidebar",
+      "type": "column",
+      "size": {
+        "px": 220
+      },
+      "min": 40,
+      "max": 480,
+      "children": [
+        {
+          "id": "brand",
+          "type": "block",
+          "size": {
+            "px": 40
+          },
+          "content": {
+            "mod": "mavericks",
+            "props": {
+              "role": "brand"
+            }
+          },
+          "window_drag": true
+        },
+        {
+          "id": "spaces",
+          "type": "block",
+          "content": {
+            "mod": "mavericks-spaces"
+          }
+        },
+        {
+          "id": "agents",
+          "type": "block",
+          "content": {
+            "mod": "mavericks-agents"
+          }
+        },
+        {
+          "id": "sidebar-footer",
+          "type": "block",
+          "size": {
+            "px": 22
+          },
+          "content": {
+            "mod": "mavericks",
+            "props": {
+              "role": "footer"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "work",
+      "type": "column",
+      "children": [
+        {
+          "id": "chrome",
+          "type": "block",
+          "size": {
+            "px": 40
+          },
+          "content": {
+            "mod": "mavericks",
+            "props": {
+              "role": "chrome"
+            }
+          },
+          "window_drag": true
+        },
+        {
+          "id": "work-body",
+          "type": "row",
+          "gap": 1,
+          "background": "border",
+          "children": [
+            {
+              "id": "main",
+              "type": "block",
+              "content": {
+                "tab": "active",
+                "pane": {
+                  "gap": 1,
+                  "radius": 0,
+                  "background": "background",
+                  "border": {
+                    "width": 0,
+                    "color": "border"
+                  },
+                  "focus": {
+                    "width": 0,
+                    "color": "input"
+                  },
+                  "header": {
+                    "content": {
+                      "mod": "mavericks",
+                      "props": {
+                        "role": "pane"
+                      }
+                    },
+                    "height": 24,
+                    "position": "top",
+                    "reveal": "always"
+                  },
+                  "lone": true
+                }
+              }
+            },
+            {
+              "id": "panel",
+              "type": "column",
+              "size": {
+                "px": 300
+              },
+              "min": 220,
+              "max": 560,
+              "hidden": true,
+              "children": [
+                {
+                  "id": "panel-body",
+                  "type": "stack",
+                  "active": "files",
+                  "children": [
+                    {
+                      "id": "files",
+                      "type": "block",
+                      "content": {
+                        "mod": "mavericks-files"
+                      }
+                    },
+                    {
+                      "id": "changes",
+                      "type": "block",
+                      "content": {
+                        "mod": "mavericks-changes"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "status",
+          "type": "block",
+          "size": {
+            "px": 22
+          },
+          "content": {
+            "mod": "mavericks",
+            "props": {
+              "role": "status"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
