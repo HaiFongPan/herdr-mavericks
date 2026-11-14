@@ -317,17 +317,34 @@ export default class Agents extends View {
       // An agent on another machine (`vps/t7`) says which.
       const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
       if (collapsed) {
+        // 图标轨：只留 agent 的程序图标，右下角一颗状态灯。
+        const glyph = a.status === "working"
+          ? svg("mods/workspace-chrome/spinner.svg").size(10).flex_none().text_color(t.working).spin(900)
+          : a.status === "blocked"
+            ? div().size(6).rounded(3).bg(t.blocked)
+            : a.status === "done"
+              ? div().size(6).rounded(3).bg(t.done)
+              : div().size(6).rounded(3).border(1.5).border_color(t.idle ?? t.dim);
+        const face = a.program?.icon
+          ? (a.program.tint
+              ? svg(a.program.icon).size(15).flex_none().text_color(a.focused ? "#ffffff" : t.muted)
+              : image(a.program.icon).w(15).h(15).flex_none())
+          : svg("mods/workspace-chrome/terminal.svg").size(15).flex_none().text_color(a.focused ? "#ffffff" : t.muted);
         return h_flex()
           .id(`ag-${a.address}`)
-          .h(26)
-          .px(8)
+          .relative()
+          .w(28)
+          .h(24)
           .flex_none()
           .items_center()
-          .gap(4)
-          .hover((s) => s.bg(t.hover))
+          .justify_center()
+          .rounded(5)
+          .when(a.focused, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
+          .when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
+          .tooltip(label(a))
           .on_click(() => run("pane.focus", { pane: a.pane }))
-          .child(div().flex_1().min_w(0).whitespace_nowrap().text_right().text_color(a.focused ? "#ffffffb0" : t.muted).child(String(i + 1)))
-          .child(h_flex().w(14).flex_none().items_center().justify_center().child(this.status(t, a, true)));
+          .child(h_flex().relative().items_center().justify_center().child(face))
+          .child(div().absolute().right(1).bottom(1).child(glyph));
       }
       const when = this.since(a);
       const idle = a.status === "idle" && !a.focused;

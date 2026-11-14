@@ -461,6 +461,11 @@ export default class Spaces extends View {
   }
 
   compact({ w, i }, t) {
+    const colors = shared("space.colors") ?? {};
+    const color = colors[w.id] ?? "ansi6";
+    const fill = color.startsWith("#") ? color : (MARK[color] ?? t[color]);
+    const urgent = w.status === "blocked" || w.status === "done" || w.status === "working";
+    // 图标轨：机器分组头在上（图标 + 连接状态），每个 space 只留彩色方块与状态点。
     return railCell(h_flex()
       .id(`space-${w.id}`)
       .relative()
@@ -469,11 +474,14 @@ export default class Spaces extends View {
       .rounded(5)
       .justify_center()
       .items_center()
-      .when(w.active, (el) => el.bg(t.selected))
+      .when(w.active, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
       .when(!w.active, (el) => el.hover((s) => s.bg(t.hover)))
       .on_click(() => run("space.select", { id: w.id }))
-      .child(div().text_color(w.active ? t.foreground : t.muted).child(String(i + 1)))
-      .child(div().absolute().right(5).text_color(tone(t, w.status)).child(glyph(w.status))));
+      .tooltip(w.name)
+      .child(h_flex().relative().size(16).flex_none().rounded(4).bg(fill).items_center().justify_center().text_size(9.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?"))
+      .when(urgent, (el) => el.child(
+        div().absolute().right(1).bottom(1).size(6).rounded(3).border_1()
+          .border_color(w.active ? MV.accentDark : t.chrome).bg(tone(t, w.status)))));
   }
 
   render() {
