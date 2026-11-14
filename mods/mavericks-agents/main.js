@@ -174,6 +174,7 @@ export default class Agents extends View {
           setShared("agents.sort", s.id);
           closeOverlay(props().overlay);
         })
+        .child(svg(`mods/workspace-chrome/${s.icon}.svg`).relative().size(13).flex_none().text_color(s.id === on ? "#ffffff" : t.muted))
         .child(div().relative().flex_1().child(s.label))
         .when(s.id === on, (el) => el.child(svg("mods/workspace-chrome/check.svg").relative().size(13).flex_none().text_color("#ffffff")))));
   }
@@ -325,7 +326,7 @@ export default class Agents extends View {
           .gap(4)
           .hover((s) => s.bg(t.hover))
           .on_click(() => run("pane.focus", { pane: a.pane }))
-          .child(div().flex_1().min_w(0).whitespace_nowrap().text_right().text_color(t.muted).child(String(i + 1)))
+          .child(div().flex_1().min_w(0).whitespace_nowrap().text_right().text_color(a.focused ? "#ffffffb0" : t.muted).child(String(i + 1)))
           .child(h_flex().w(14).flex_none().items_center().justify_center().child(this.status(t, a, true)));
       }
       const when = this.since(a);
@@ -336,9 +337,9 @@ export default class Agents extends View {
         .flex_none()
         .p(2)
         .rounded(4)
-        .text_color(t.dim)
+        .text_color(a.focused ? "#ffffffd0" : t.dim)
         .cursor_pointer()
-        .hover((s) => s.bg(t.hover).text_color(t.foreground))
+        .hover((s) => s.bg(a.focused ? "#ffffff30" : t.hover).text_color(a.focused ? "#ffffff" : t.foreground))
         .tooltip(isPinned ? "Unpin" : "Pin to the top")
         .on_click((_e, cx) => {
           cx.stop_propagation();
@@ -378,11 +379,11 @@ export default class Agents extends View {
           })).child(pic)))
         .child(h_flex().flex_1().min_w(0).gap(5).items_center()
           .child(div().min_w(0).max_w(full && more ? 120 : 200).truncate().text_color(a.focused ? "#ffffff" : idle ? t.muted : t.foreground).child(name))
-          .when(full && Boolean(more), el => el.child(div().flex_1().min_w(0).truncate().text_color(t.dim).child(`\u00b7 ${more}`))))
-        .when(Boolean(machine), el => el.child(div().text_size(10).text_color(t.dim).child(machine)))
+          .when(full && Boolean(more), el => el.child(div().flex_1().min_w(0).truncate().text_color(a.focused ? "#ffffffb0" : t.dim).child(`\u00b7 ${more}`))))
+        .when(Boolean(machine), el => el.child(div().text_size(10).text_color(a.focused ? "#ffffffb0" : t.dim).child(machine)))
         .when(subs.length > 0, el => el.child(fold(a, subs)))
         .when(this.hovered === a.address, el => el.child(pin))
-        .when(this.hovered !== a.address && Boolean(when), el => el.child(div().flex_none().text_size(11).text_color(t.dim).child(duration(now - when))))
+        .when(this.hovered !== a.address && Boolean(when), el => el.child(div().flex_none().text_size(11).text_color(a.focused ? "#ffffffb0" : t.dim).child(duration(now - when))))
         .child(this.status(t, a, byPriority && !isPinned));
     };
 

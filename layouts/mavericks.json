@@ -55,111 +55,81 @@
               "content": {
                 "mod": "mavericks-agents"
               }
-            },
-            {
-              "id": "sidebar-footer",
-              "type": "block",
-              "size": {
-                "px": 38
-              },
-              "content": {
-                "mod": "mavericks",
-                "props": {
-                  "role": "footer"
-                }
-              }
             }
           ]
         },
         {
-          "id": "work",
-          "type": "column",
+          "id": "work-body",
+          "type": "row",
           "children": [
             {
-              "id": "tabs",
+              "id": "main",
               "type": "block",
-              "size": {
-                "px": 33
-              },
               "content": {
-                "mod": "mavericks",
-                "props": {
-                  "role": "tabs"
+                "tab": "active",
+                "pane": {
+                  "gap": 1,
+                  "radius": 0,
+                  "background": "background",
+                  "border": {
+                    "width": 0,
+                    "color": "#b8b8b8"
+                  },
+                  "focus": {
+                    "width": 1,
+                    "color": "#9a9a9a"
+                  },
+                  "header": {
+                    "content": {
+                      "mod": "mavericks",
+                      "props": {
+                        "role": "pane"
+                      }
+                    },
+                    "height": 24,
+                    "position": "top",
+                    "reveal": "always"
+                  },
+                  "lone": true
                 }
               }
             },
             {
-              "id": "work-body",
-              "type": "row",
+              "id": "panel",
+              "type": "column",
+              "size": {
+                "px": 300
+              },
+              "min": 220,
+              "max": 560,
+              "hidden": true,
               "children": [
                 {
-                  "id": "main",
-                  "type": "block",
-                  "content": {
-                    "tab": "active",
-                    "pane": {
-                      "gap": 1,
-                      "radius": 0,
-                      "background": "background",
-                      "border": {
-                        "width": 1,
-                        "color": "#b8b8b8"
-                      },
-                      "focus": {
-                        "width": 1,
-                        "color": "#9a9a9a"
-                      },
-                      "header": {
-                        "content": {
-                          "mod": "mavericks",
-                          "props": {
-                            "role": "pane"
-                          }
-                        },
-                        "height": 24,
-                        "position": "top",
-                        "reveal": "always"
-                      },
-                      "lone": true
-                    }
-                  }
-                },
-                {
-                  "id": "panel",
-                  "type": "column",
-                  "size": {
-                    "px": 300
-                  },
-                  "min": 220,
-                  "max": 560,
-                  "hidden": true,
+                  "id": "panel-body",
+                  "type": "stack",
+                  "active": "files",
                   "children": [
                     {
-                      "id": "panel-body",
-                      "type": "stack",
-                      "active": "files",
-                      "children": [
-                        {
-                          "id": "files",
-                          "type": "block",
-                          "content": {
-                            "mod": "files"
-                          }
-                        },
-                        {
-                          "id": "changes",
-                          "type": "block",
-                          "content": {
-                            "mod": "changes"
-                          }
-                        }
-                      ]
+                      "id": "files",
+                      "type": "block",
+                      "content": {
+                        "mod": "mavericks-files"
+                      }
+                    },
+                    {
+                      "id": "changes",
+                      "type": "block",
+                      "content": {
+                        "mod": "mavericks-changes"
+                      }
                     }
                   ]
                 }
               ]
             }
-          ]
+          ],
+          "background": "#b8b8b8",
+          "gap": 1
         }
       ]
     },

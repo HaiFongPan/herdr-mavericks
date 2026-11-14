@@ -39,7 +39,7 @@ mkdir -p "$dest/layouts" "$dest/themes" "$dest/mods"
 place "$src/layouts/mavericks.json" "$dest/layouts/mavericks.json"
 place "$src/themes/mavericks.json" "$dest/themes/mavericks.json"
 
-for mod in mavericks mavericks-menu mavericks-spaces mavericks-agents; do
+for mod in mavericks mavericks-menu mavericks-spaces mavericks-agents mavericks-files mavericks-changes; do
   place "$src/mods/$mod" "$dest/mods/$mod"
 done
 

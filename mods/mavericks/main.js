@@ -1,20 +1,16 @@
 // Herdr · Mavericks 10.9：整套布局由这个 mod 的若干 role 画成。
 // layout 与 overlay 通过 props { role } 指定：
-//   chrome  窗口标题栏 + Aqua 工具栏
-//   tabs    Safari 式标签栏
+//   chrome  统一工具栏：交通灯位 + 侧栏开关 + 标签页 + Files/Changes/分屏/查找/新建
 //   pane    每个 pane 的标题栏
-//   status  底部状态条
-//   footer  侧栏底部的 Settings / Add machine
+//   status  底部状态条（含 Settings / Add machine）
 
 import { View, div } from "gpui-kit";
 import { props } from "herdr";
 import Chrome from "./chrome.js";
-import Tabs from "./tabs.js";
 import Pane from "./pane.js";
 import Status from "./status.js";
-import Footer from "./footer.js";
 
-const ROLES = { chrome: Chrome, tabs: Tabs, pane: Pane, status: Status, footer: Footer };
+const ROLES = { chrome: Chrome, pane: Pane, status: Status };
 
 export default class Mavericks extends View {
   init(p, cx) {
