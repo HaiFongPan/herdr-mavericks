@@ -345,10 +345,12 @@ export default class Spaces extends View {
           cx.notify();
         })
         .when(!collapsed, el => el.child(icon))
+        // 连接状态还是原来的小点，只是放到机器图标后面（紧贴图标下方），
+        // 不再用整块色晕、也不放右下角。
         .when(collapsed, el => el.child(
-          div().relative().size(24).flex().items_center().justify_center()
-            .when(Boolean(m), (box) => box.child(div().absolute().size(24).rounded(12).bg((connected ? t.ansi2 : t.dim) + "33")))
-            .child(icon)))
+          div().relative().size(24).flex().flex_col().items_center().justify_center()
+            .child(svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(12).flex_none().text_color(t.textMuted ?? t.muted))
+            .child(div().size(5).rounded(3).flex_none().bg(connected ? t.ansi2 : t.dim))))
         .when(!collapsed, el => el.child(div().flex_1().truncate().child(m ?? "This computer"))
           .when(!connected && !rebuilt && !login, el => el.child(div().flex_none().child((machine?.state ?? "asleep").replace(/_/g, " "))))
           .when(rebuilt, el => el.child(h_flex().flex_none().gap(3).items_center()
