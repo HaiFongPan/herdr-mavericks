@@ -46,9 +46,10 @@
   并记住 `panel-body` 的当前子项；分屏 `pane.split {direction}`；查找 `terminal.search`；
   `+` 打开 Herdr 的 new-menu。侧栏的伸缩（brand 行的按钮、`cmd-b`）走 `layout.resize {id: "sidebar"}`，
   整条收起时用 `cmd-b`（`layout.toggle:sidebar`）。
-- 标签：单击 `tab.select`，双击 `tab.rename`，按住拖动 `tab.move`，右键打开 `mavericks-menu`，
-  滚轮 `tab.prev` / `tab.next`。关闭按钮和 12px 状态槽始终占位，只在活动或悬停时显示，
-  标签宽度不随指针跳动。
+- 标签：单击 `tab.select`，双击 `tab.rename`，按住拖动 `tab.move`，右键打开 `mavericks-menu`。
+  标签条 `overflow_x_scroll`：放不下时滚轮左右平移（不再把滚轮接成 `tab.prev` / `tab.next`，
+  否则开十几个标签后滚轮既切标签又平移，看不到被挡住的那几个），也不画横向滚动条。
+  关闭按钮和 12px 状态槽始终占位，只在活动或悬停时显示，标签宽度不随指针跳动。
 - 空间行：单击 `space.select`，拖动 `space.move`，右键 `mavericks-menu`（tab: "space"）；
   选中行随 `spaces()[i].active` 变化。
 - agent 行：单击 `pane.focus {pane}`；悬停显示 pin（`terminal.pin`）。
@@ -80,6 +81,8 @@
   去掉图标，22px 行、4px 圆角、蓝色选中、快捷键右对齐；保留 ↑/↓/Enter/Esc 键盘导航。
 - `themes/mavericks.json`：背景 `#fdfdfd`、前景 `#1b1b1b`、选中 `#b3d1ff`，
   ansi 0–15 是 Terminal.app Basic 的配色；`colors` 覆盖 Herdr 的 chrome / canvas / accent / 状态色。
+  `colors.selected` 是 `#6fa8e8`（系统蓝的浅端）：命令面板、Settings 这些 Herdr 自带弹层
+  用前景色画行文字，深蓝底上深字看不清，浅一档才读得清。
 - `themes/mavericks-dark.json`：chrome 色同浅色主题，终端换成 Terminal.app Homebrew 的黑底
   （`#000000` / `#ffffff` 与它的 16 色）。布局的 `theme` 是 `{ light, dark }`，跟随系统外观；
   也可以在主题菜单里手动选。

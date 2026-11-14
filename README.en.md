@@ -48,8 +48,11 @@ Herdr falls back to Geist / JetBrains Mono.
 - The work-area toolbar is one row: tabs (starting at the sidebar's right edge), Files / Changes
   (when the layout has the panel), split right, split down, find, new tab. It drags the window;
   buttons and tabs stop propagation on mouse-down.
-- Tabs: click to select, double-click to rename, drag to reorder, right-click for the menu,
-  scroll to switch. The close button and status slot keep their width, so tabs never jump.
+- Tabs: click to select, double-click to rename, drag to reorder, right-click for the menu.
+  When they overflow the row, the wheel scrolls the tab strip sideways to reveal the hidden
+  ones (it no longer switches tabs; use `cmd-shift-[` / `cmd-shift-]` or a click for that),
+  and no horizontal scrollbar is painted. The close button and status slot keep their width,
+  so tabs never jump.
 - The work-area status bar shows the terminal icon, current path and branch, tab count and agent states.
 - Only one line per seam: a root `divider` between sidebar and work area; panes have no border,
   and the 1px gaps between panes / the Files panel show the `#b8b8b8` background. Focus is shown
@@ -61,8 +64,11 @@ Herdr falls back to Geist / JetBrains Mono.
 ## Known limits
 
 - Some Herdr overlays cannot be reskinned: the close confirmation, rename prompts, the
-  new-tab menu, the picker and Settings still use Herdr's own mods and only follow theme
-  colors. The context menu has been replaced by `mavericks-menu`.
+  new-tab menu, the picker, Settings and the command palette (`cmd-shift-p`) still use Herdr's
+  own mods and only follow theme colors. The context menu has been replaced by `mavericks-menu`.
+  Those overlays draw row text with `colors.foreground`, so the selection color cannot be the
+  sidebar's deep system blue (dark text on it is unreadable): `colors.selected` uses the light
+  end of the system blue, `#6fa8e8`, where dark text still reads.
 - `mavericks-spaces` / `mavericks-agents` are clones of Herdr 0.1.15. When Herdr's internals
   or APIs change, re-clone and re-apply the styling from this repo.
 - The Files / Changes panels are hidden by default and open from the toolbar; their logic comes

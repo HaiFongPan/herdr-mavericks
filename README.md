@@ -41,7 +41,9 @@ herdr-app do layout.switch --name mavericks
 - 侧栏窄于 160px 收成图标轨：每行一个 16px 图标，后面跟一颗 5px 状态点（机器连接、space 状态、agent 状态同一列），选中行的高亮铺满整行。图标轨里不放开侧栏按钮，用 `cmd-b` 收回完整侧栏。
 - 侧栏与工作区共用一条 1px 分隔线，拖动侧栏边界时工具栏里的标签页一起跟着动。
 - 工作区工具栏一行：标签页（从侧栏右边缘开始）、Files / Changes（布局里有面板时）、向右分屏、向下分屏、查找、新建标签页；整条可拖动窗口，按钮和标签都做了 `stop_propagation`。
-- 标签：点击切换、双击改名、拖动排序、右键菜单、滚轮切上下一个。关闭按钮和状态位固定占位，悬停时只变可见度，标签宽度不会跳。
+- 标签：点击切换、双击改名、拖动排序、右键菜单；标签多到一行放不下时，滚轮左右平移标签条
+  （露出被挡住的标签，不再切换标签；切标签用 `cmd-shift-[` / `cmd-shift-]` 或点选）。
+  关闭按钮和状态位固定占位，悬停时只变可见度，标签宽度不会跳。
 - 工作区底部状态栏：终端图标、当前路径与分支、标签数、agent 状态计数。
 - 分隔线只画一层：侧栏与工作区之间是一条 root `divider`；pane 没有边框，pane 之间、pane 与 Files 面板之间靠 1px 间隙露出 `#b8b8b8`；聚焦用 pane 标题栏的深浅表示。
 - 侧栏空间：点击切换、右键菜单、拖动排序；agent 行点击跳到对应 pane。
@@ -49,7 +51,9 @@ herdr-app do layout.switch --name mavericks
 
 ## 已知边界
 
-- Herdr 自带的部分弹层没法换皮：关闭确认、重命名输入、新建标签页菜单、picker、Settings 等仍用 Herdr 自己的 mod，只跟随主题色。右键菜单已换成 `mavericks-menu`。
+- Herdr 自带的部分弹层没法换皮：关闭确认、重命名输入、新建标签页菜单、picker、Settings、命令面板（`cmd-shift-p`）等仍用 Herdr 自己的 mod，只跟随主题色。右键菜单已换成 `mavericks-menu`。
+  这些弹层用 `colors.foreground` 画行文字，所以选中底色不能是侧栏那种深系统蓝（蓝底深字看不清）；
+  `colors.selected` 用系统蓝的浅端 `#6fa8e8`，蓝底深字仍然读得清。
 - Files / Changes 面板默认隐藏，从工具栏打开；内容与交互逻辑来自 Herdr 的 `files` / `changes`，只换了外观。
 - Herdr 内置的终端查找条（`terminal.search`）不是 mod，没有样式接口：`find` 输入框的内边距改不了。
 - `mavericks-spaces` / `mavericks-agents` 是 Herdr 0.1.15 的克隆，Herdr 升级后如果内部数据或 API 变了，这两个要跟着更新（或重新 `mod.clone` 再套用本仓库的样式改动）。

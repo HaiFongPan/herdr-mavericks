@@ -128,10 +128,11 @@ export default class Chrome {
       .items_center()
       .gap(3)
       .px(2)
-      .overflow_x_scrollbar()
+      // 标签多到放不下时滚轮平移标签条，露出被挡住的那几个：`overflow_x_scroll`
+      // 不带横向滚动条，10.9 的工具栏里不该压出一条深灰的条。
+      .overflow_x_scroll()
       .track_scroll(this.scroll)
       .on_size_change((_size, cx) => { if (active >= 0) { this.scroll.scroll_to_item(active); cx.notify(); } })
-      .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
       .on_mouse_up("left", () => { this.pressed = null; })
       .children(shown.map((c, i) => this.tab(space, shown, active, c, i)));
   }
