@@ -1,0 +1,540 @@
+// Agents in grouped or priority views; parents take their most urgent sub-agent's place.
+
+import { View, div, image, svg, PathBuilder, Background } from "gpui-kit";
+import { v_flex, h_flex } from "gpui-base";
+import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout } from "herdr";
+
+// Mavericks 的字体与少量 10.9 颜色（与 mods/mavericks 的 kit.js 同源）。
+const FONT = "Helvetica Neue";
+const MV_LIGHT = {
+  accentLight: "#6fa8e8",
+  accentDark: "#2c62b8",
+  sidebarTop: "#ededed",
+  sidebarBottom: "#e3e3e3",
+  heading: "#6f6f6f",
+  divider: "#c5c5c5",
+  text: "#262626",
+};
+// 深色外观的同一组颜色：与 mods/mavericks/kit.js 的 DARK 对齐。
+const MV_DARK = {
+  accentLight: "#5f97e4",
+  accentDark: "#2b5cae",
+  sidebarTop: "#3a3a3a",
+  sidebarBottom: "#323232",
+  heading: "#9a9a9a",
+  divider: "#252525",
+  text: "#eaeaea",
+};
+
+// #rrggbb 的感知亮度，0（黑）到 1（白）。
+function luminance(hex) {
+  const m = /^#?([0-9a-f]{6})/i.exec(String(hex ?? ""));
+  if (!m) return 1;
+  const n = parseInt(m[1], 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+}
+
+let picked = { key: null, palette: MV_LIGHT };
+
+/** 当前外观的侧栏配色：按生效主题 `chrome` 的亮度选浅色或深色。 */
+function mv() {
+  const t = theme() ?? {};
+  const key = `${t.chrome ?? ""}|${t.foreground ?? ""}`;
+  if (key !== picked.key) picked = { key, palette: luminance(t.chrome) > 0.5 ? MV_LIGHT : MV_DARK };
+  return picked.palette;
+}
+
+const RECT = () =>
+  PathBuilder.fill().move_to("0%", "0%").line_to("100%", "0%").line_to("100%", "100%").line_to("0%", "100%").close().build();
+
+function gradient(from, to, angle = 180) {
+  return globalThis.window.paint_path(RECT(), Background.linear_gradient(angle, from, to)).absolute().top(0).left(0).size_full();
+}
+
+function find(node, id) {
+  if (node?.id === id) return node;
+  for (const child of node?.children ?? []) {
+    const found = find(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+// The sidebar's rail goes by its width, not a flag: dragging its edge narrows it too.
+const narrow = () => (find(layout(), "sidebar")?.size?.px ?? Infinity) < 160;
+
+// 图标轨：左右留白与展开态一致；状态点跟在图标后面（自己的列，列宽只够放一颗 5px 的点）。
+const RAIL_INSET = 6;
+const RAIL_ROW = 24;
+const RAIL_GAP = 4;
+const RAIL_DOT = 6;
+const railDot = (dotEl) => h_flex().w(RAIL_DOT).flex_none().h_full().items_center().justify_center().when(Boolean(dotEl), el => el.child(dotEl));
+
+// To the rail (on macOS wide enough for the traffic lights), or back to the width it had.
+function toggleSidebar() {
+  const width = find(layout(), "sidebar")?.size?.px;
+  if (!narrow()) setShared("sidebar.width", width);
+  // Mods edited before the rail went by width still read the flag.
+  setShared("sidebar.collapsed", !narrow());
+  run("layout.resize", { id: "sidebar", px: narrow() ? (shared("sidebar.width") ?? 268) : window()?.platform === "macos" ? 76 : 44 });
+}
+
+const clean = (s) => (s ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+
+function leadPanes(all) {
+  const leads = new Map();
+  for (const p of all) {
+    if (!p.terminal) continue;
+    const current = leads.get(p.tab);
+    // First agent, else first focused terminal, else first terminal in the tab.
+    if (!current || (!current.program?.agent && (p.program?.agent || (!current.focused && p.focused)))) leads.set(p.tab, p);
+  }
+  return leads;
+}
+
+function title(tab, l) {
+  const prog = l?.program?.name;
+  const live = clean(l?.title);
+  // clean() would strip a path's leading ~ or /: test the title with only its status glyph gone.
+  const path = /^[~/]|^[A-Za-z]:\\/.test((l?.title ?? "").replace(/^[^\p{L}\p{N}~/]+/u, ""));
+  const telling = live && live !== prog && !path && !live.includes("@") && live.toLowerCase() !== l?.program?.key;
+  return (tab.name === prog || !tab.named) && telling ? live : tab.name;
+}
+const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
+// A sub-agent without a pane isn't in agents(): its raw word, error counting as
+// blocked. It's never done: it reports to its parent, and the parent's done is the news.
+const kidStatus = (k, listed) => {
+  const s = listed.get(k.address) ?? k.status;
+  return s === "error" ? "blocked" : s === "done" ? "idle" : s;
+};
+const SORTS = [
+  { id: "priority", label: "Priority", icon: "clock" },
+  { id: "grouped", label: "Grouped by space", icon: "layers" },
+];
+const sortOf = () => SORTS.find((s) => s.id === shared("agents.sort")) ?? SORTS[0];
+const SECTION = { 4: "Needs you", 3: "Done", 2: "Working", 1: "Idle" };
+const SECTION_STATUS = { 4: "blocked", 3: "done", 2: "working" };
+
+function duration(ms) {
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return "<1m";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
+}
+
+// The agent's icon from the app's program table: a one-color glyph or a picture.
+function icon(p, size, color) {
+  if (!p?.icon) return null;
+  return p.tint ? svg(p.icon).size(size).flex_none().text_color(color) : image(p.icon).w(size).h(size).flex_none();
+}
+
+export default class Agents extends View {
+  init(_props, cx) {
+    if (props()?.sortMenu) return;
+    // 换主题或系统外观不会自动重绘布局里的 mod：每秒比一次主题签名，变了才 notify。
+    let seenTheme = `${theme()?.chrome}|${theme()?.foreground}`;
+    cx.timer.every(1000, (cx) => {
+      const now = `${theme()?.chrome}|${theme()?.foreground}`;
+      if (now === seenTheme) return;
+      seenTheme = now;
+      cx.notify();
+    });
+    this.folded = new Set();
+    // Each agent's last state and when it changed (ms), kept across restarts.
+    this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
+    this.pendingPins = JSON.parse(localStorage.getItem("pins") ?? "[]");
+    if (!this.pendingPins.length) localStorage.removeItem("pins");
+    this.migratingPins = new Set();
+    cx.timer.every(30000, (cx) => cx.notify());
+  }
+
+  // Stamps agents whose state changed. Done and idle count as one: looking at a
+  // finished agent turns done into idle, and looking isn't the agent doing anything.
+  track(list, now) {
+    let dirty = false;
+    for (const a of list) {
+      const s = a.status === "done" ? "idle" : a.status;
+      if (this.changed[a.address]?.s === s) continue;
+      this.changed[a.address] = { s, at: now };
+      dirty = true;
+    }
+    if (!dirty) return;
+    // Gone and old: the list alone is empty right after a start.
+    const listed = new Set(list.map((a) => a.address));
+    for (const [k, c] of Object.entries(this.changed)) if (!listed.has(k) && now - c.at > 30 * 86400000) delete this.changed[k];
+    localStorage.setItem("changed", JSON.stringify(this.changed));
+  }
+
+  // Keep offline pins until their terminal returns, and keep each pending until
+  // core echoes the label so a failed write doesn't erase the old pin.
+  migratePins(all) {
+    const listed = new Map(all.filter((t) => t.state === "live").map((t) => [t.address, t]));
+    const pending = this.pendingPins.filter((address) => {
+      const terminal = listed.get(address);
+      if (!terminal) return true;
+      if (terminal.labels?.["herdr.pinned"]) return false;
+      if (!this.migratingPins.has(address)) {
+        this.migratingPins.add(address);
+        run("terminal.pin", { terminal: address, pinned: true });
+      }
+      return true;
+    });
+    if (pending.length === this.pendingPins.length) return;
+    this.pendingPins = pending;
+    if (pending.length) localStorage.setItem("pins", JSON.stringify(pending));
+    else localStorage.removeItem("pins");
+  }
+
+  since(a) {
+    return this.changed[a.address]?.at ?? 0;
+  }
+
+  rank(a) {
+    return RANK[a.status] ?? 0;
+  }
+
+  sortMenu(t) {
+    const MV = mv();
+    const on = sortOf().id;
+    return v_flex()
+      .w_full()
+      .p(4)
+      .font_family(FONT)
+      .text_size(12)
+      .child(div().px(9).pt(3).pb(5).text_size(10.5).font_semibold().text_color(MV.heading).child("Sort"))
+      .children(SORTS.map((s) => h_flex()
+        .relative()
+        .id(`sort-${s.id}`)
+        .h(22)
+        .px(9)
+        .gap(8)
+        .rounded(4)
+        .items_center()
+        .text_color(MV.text)
+        .when(s.id === on, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
+        .when(s.id !== on, (el) => el.hover((el) => el.bg(t.hover)))
+        .on_click(() => {
+          setShared("agents.sort", s.id);
+          closeOverlay(props().overlay);
+        })
+        .child(svg(`mods/workspace-chrome/${s.icon}.svg`).relative().size(13).flex_none().text_color(s.id === on ? "#ffffff" : t.muted))
+        .child(div().relative().flex_1().child(s.label))
+        .when(s.id === on, (el) => el.child(svg("mods/workspace-chrome/check.svg").relative().size(13).flex_none().text_color("#ffffff")))));
+  }
+
+  peek(addr) {
+    run("terminal.peek", { terminal: addr });
+  }
+
+  // Live sub-agents of `addr`, depth first, each with the tree lines in front of it.
+  tree(all, addr, lead = []) {
+    const kids = all.filter((k) => k.parent === addr && k.state === "live");
+    return kids.flatMap((k, i) => {
+      const last = i === kids.length - 1;
+      return [
+        { t: k, lines: [...lead, last ? "└" : "├"] },
+        ...this.tree(all, k.address, [...lead, last ? "" : "│"]),
+      ];
+    });
+  }
+
+  subRow(t, s, shown, compact) {
+    const k = s.t;
+    const st = kidStatus(k, this.listed);
+    const pic = icon(k.program, 14, t.foreground);
+    const on = k.address === shown;
+    return h_flex()
+      .id(`sub-${k.address}`)
+      .pl(39)
+      .pr(8)
+      .rounded(8)
+      .h(26)
+      .flex_none()
+      .gap(0)
+      .items_center()
+      .text_size(12.5)
+      .when(on, (el) => el.bg(t.raised))
+      .hover((s) => s.bg(t.hover))
+      .on_click(() => (this.listed.has(k.address) ? run("pane.focus", { terminal: k.address }) : this.peek(k.address)))
+      .children(s.lines.map(l => div().self_start().mt(-4).w(9).h(17).mr(4).flex_none()
+        .when(Boolean(l), el => el.border_l(1.5).border_color(t.input))
+        .when(l === "└" || l === "├", el => el.border_b(1.5).rounded_bl(6))))
+      .when(Boolean(pic), el => el.child(div().mr(8).child(pic)))
+      .child(div().flex_1().truncate().text_color(on ? t.foreground : t.muted).child(k.name || k.template || k.program?.name || k.address))
+      .child(this.status(t, { status: st }, compact));
+  }
+
+  // compact: a ! for blocked where a header already says "Needs you".
+  status(t, a, compact = false) {
+    const color = t[a.status] ?? t.dim;
+    if (a.status === "working") return svg("mods/workspace-chrome/spinner.svg").size(12).mx(1).flex_none().text_color(t.working).spin(900);
+    if (a.status === "blocked" && compact) return div().size(14).flex_none().rounded(4).bg(t.blocked + "26").text_size(10.5).font_bold().text_color(t.blocked).flex().items_center().justify_center().child("!");
+    if (a.status === "blocked") return div().flex_none().px(6).h(18).rounded(5).bg(t.blocked + "26").text_size(10.5).font_semibold().text_color(t.blocked).flex().items_center().child("Needs you");
+    // Idle: a ring; done: a dot.
+    if (a.status === "idle") return div().size(7).mx(3).flex_none().rounded(4).border(1.5).border_color(t.idle ?? t.dim);
+    return div().size(7).mx(3).flex_none().rounded(4).bg(a.status === "done" ? color : t.dim + "00");
+  }
+
+  render(cx) {
+    const t = theme(), MV = mv();
+    if (props()?.sortMenu) return this.sortMenu(t);
+    const collapsed = narrow();
+    const sort = sortOf();
+    let list = agents();
+    this.listed = new Map(list.map((a) => [a.address, a.status]));
+    const all = terminals();
+    this.migratePins(all);
+    const shown = focused()?.agent;
+    const now = Date.now();
+    this.track(list, now);
+    // A kept sub-agent (one with a pane) is in agents() too: where a tree shows
+    // it, it gets no row of its own, unless it's pinned.
+    const nested = new Set(collapsed ? [] : list.flatMap((a) => this.tree(all, a.address).map((s) => s.t.address)));
+    list = list.filter((a) => a.pinned || !nested.has(a.address));
+    const tabCounts = new Map();
+    for (const a of list) tabCounts.set(a.tab, (tabCounts.get(a.tab) ?? 0) + 1);
+    const byPriority = sort.id === "priority";
+    const urgency = new Map(list.map((a) => [a.address, Math.max(this.rank(a), ...this.tree(all, a.address).map((s) => RANK[kidStatus(s.t, this.listed)] ?? 0))]));
+    const rankOf = (a) => urgency.get(a.address);
+    if (byPriority) list = [...list].sort((x, y) => rankOf(y) - rankOf(x) || this.since(y) - this.since(x) || y.seq - x.seq);
+    const pinned = list.filter((a) => a.pinned);
+    const rest = list.filter((a) => !a.pinned);
+    list = [...pinned, ...rest];
+    setAgentOrder(list.map((a) => a.address));
+
+    const withKids = (a, i) => {
+      const subs = collapsed ? [] : this.tree(all, a.address);
+      const r = row(a, i, subs);
+      if (this.folded.has(a.address)) return [r];
+      return [r, ...subs.map((s) => this.subRow(t, s, shown, byPriority))];
+    };
+
+    // The fold chevron; folded, the count too, colored by the most urgent one.
+    const fold = (a, subs) => {
+      const sts = subs.map((s) => kidStatus(s.t, this.listed));
+      const top = sts.reduce((m, s) => ((RANK[s] ?? 0) > (RANK[m] ?? 0) ? s : m), null);
+      const open = !this.folded.has(a.address);
+      return div()
+        .id(`fold-${a.address}`)
+        .h(18)
+        .px(3)
+        .gap(3)
+        .flex()
+        .items_center()
+        .rounded(4)
+        .text_size(11)
+        .text_color(open ? t.dim : (t[top] ?? t.dim))
+        .cursor_pointer()
+        .hover((s) => s.bg(t.hover).text_color(t.foreground))
+        .on_click((_e, cx) => {
+          cx.stop_propagation();
+          open ? this.folded.add(a.address) : this.folded.delete(a.address);
+          cx.notify();
+        })
+        .child(svg(`mods/workspace-chrome/chevron-${open ? "down" : "right"}.svg`).size(11).flex_none())
+        .when(!open, (el) => el.child(String(subs.length)));
+    };
+
+    // A row reads "space \u00b7 detail": the detail is a tab someone named or the
+    // agent's own title, never an automatic tab number unless two rows would
+    // otherwise read the same.
+    // Read the pane snapshot once: every host read copies the whole list into JS.
+    const leads = leadPanes(panes());
+    const tabs = new Map(spaces().flatMap(s => s.tabs).map(tab => [tab.id, tab]));
+    const labels = new Map(list.map(a => {
+      const tab = tabs.get(a.tab);
+      const many = tabCounts.get(a.tab) > 1;
+      return [a.address, tab ? title(many ? { ...tab, named: false } : tab, many ? a : leads.get(a.tab)) : (a.title || a.program?.name || "")];
+    }));
+    const label = (a) => labels.get(a.address);
+    const detail = new Map(list.map(a => [a.address, /^\d+$/.test(label(a)) ? null : label(a)]));
+    const seen = {};
+    for (const a of list) { const k = `${a.space_name}\u0000${detail.get(a.address) ?? ""}`; seen[k] = (seen[k] ?? 0) + 1; }
+    for (const a of list) {
+      if (detail.get(a.address) == null && seen[`${a.space_name}\u0000`] > 1) detail.set(a.address, label(a));
+    }
+
+    const row = (a, i, subs = []) => {
+      const pic = icon(a.program, 16, t.foreground);
+      const more = detail.get(a.address);
+      // An agent on another machine (`vps/t7`) says which.
+      const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
+      if (collapsed) {
+        // 图标轨：只留 agent 的程序图标与一颗状态点；状态点与机器连接点同列、同宽、同样 5px。
+        const face = a.program?.icon
+          ? (a.program.tint
+              ? svg(a.program.icon).size(16).flex_none().text_color(a.focused ? "#ffffff" : t.muted)
+              : image(a.program.icon).w(16).h(16).flex_none())
+          : svg("mods/workspace-chrome/terminal.svg").size(16).flex_none().text_color(a.focused ? "#ffffff" : t.muted);
+        return h_flex()
+          .id(`ag-${a.address}`)
+          .relative()
+          .w_full()
+          .h(RAIL_ROW)
+          .flex_none()
+          .gap(RAIL_GAP)
+          .items_center()
+          .justify_center()
+          .rounded(5)
+          .when(a.focused, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
+          .when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
+          .tooltip(label(a))
+          .on_click(() => run("pane.focus", { pane: a.pane }))
+          .child(face)
+          .child(railDot(div().size(5).rounded(3).flex_none().bg(t[a.status] ?? t.dim)));
+      }
+      const when = this.since(a);
+      const idle = a.status === "idle" && !a.focused;
+      const isPinned = a.pinned;
+      const pin = div()
+        .id(`pin-${a.address}`)
+        .flex_none()
+        .p(2)
+        .rounded(4)
+        .text_color(a.focused ? "#ffffffd0" : t.dim)
+        .cursor_pointer()
+        .hover((s) => s.bg(a.focused ? "#ffffff30" : t.hover).text_color(a.focused ? "#ffffff" : t.foreground))
+        .tooltip(isPinned ? "Unpin" : "Pin to the top")
+        .on_click((_e, cx) => {
+          cx.stop_propagation();
+          run("terminal.pin", { terminal: a.address, pinned: !isPinned });
+          // The row moves away from under the pointer, and no hover-out comes.
+          this.hovered = null;
+          cx.notify();
+        })
+        .child(svg(`mods/workspace-chrome/${isPinned ? "pin-off" : "pin"}.svg`).size(13));
+      // Under a space header the space goes without saying; an automatic tab number says nothing.
+      // Without a space header above (priority, pinned) the row names its space.
+      const full = byPriority || isPinned;
+      const name = full ? a.space_name || label(a) : more ?? (/^\d+$/.test(label(a)) ? a.program?.name || label(a) : label(a));
+      return h_flex()
+        .relative()
+        .id(`ag-${a.address}`)
+        .px(6)
+        .h(26)
+        .flex_none()
+        .rounded(5)
+        .items_center()
+        .gap(7)
+        .when(a.focused, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
+        .cursor_pointer()
+        .when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
+        .on_hover((on, cx) => {
+          if (on) this.hovered = a.address;
+          else if (this.hovered === a.address) this.hovered = null;
+          cx.notify();
+        })
+        .on_click(() => run("pane.focus", { pane: a.pane }))
+        .when(Boolean(pic), el => el.child(div().id(`agent-fold-${a.address}`)
+          .when(subs.length > 0, el => el.on_click((_e, cx) => {
+            cx.stop_propagation();
+            this.folded.has(a.address) ? this.folded.delete(a.address) : this.folded.add(a.address);
+            cx.notify();
+          })).child(pic)))
+        .child(h_flex().flex_1().min_w(0).gap(5).items_center()
+          .child(div().min_w(0).max_w(full && more ? 120 : 200).truncate().text_color(a.focused ? "#ffffff" : idle ? t.muted : t.foreground).child(name))
+          .when(full && Boolean(more), el => el.child(div().flex_1().min_w(0).truncate().text_color(a.focused ? "#ffffffb0" : t.dim).child(`\u00b7 ${more}`))))
+        .when(Boolean(machine), el => el.child(div().text_size(10).text_color(a.focused ? "#ffffffb0" : t.dim).child(machine)))
+        .when(subs.length > 0, el => el.child(fold(a, subs)))
+        .when(this.hovered === a.address, el => el.child(pin))
+        .when(this.hovered !== a.address && Boolean(when), el => el.child(div().flex_none().text_size(11).text_color(a.focused ? "#ffffffb0" : t.dim).child(duration(now - when))))
+        .child(this.status(t, a, byPriority && !isPinned));
+    };
+
+    // Groups in list order: spaces (grouped) or priority sections. Agents of a
+    // space are next to each other in agents(), so neighbours make a group.
+    const groups = pinned.length ? [{ id: "pinned", label: "Pinned", status: null, members: pinned }] : [];
+    for (const a of rest) {
+      const r = rankOf(a) || RANK.idle;
+      const id = byPriority ? `sec-${r}` : `sp-${a.space}`;
+      if (groups.at(-1)?.id === id) groups.at(-1).members.push(a);
+      else groups.push({ id, label: byPriority ? SECTION[r] : a.space_name || "", status: byPriority ? SECTION_STATUS[r] : null, members: [a] });
+    }
+
+    // A group's header; it folds the group. Folded, it says how many and the most urgent state.
+    const header = (g) => {
+      const open = !this.folded.has(g.id);
+      const top = g.members.reduce((m, a) => ((RANK[a.status] ?? 0) > (RANK[m] ?? 0) ? a.status : m), null);
+      return h_flex()
+        .id(g.id)
+        .relative()
+        .px(8)
+        .pt(6)
+        .h(24)
+        .flex_none()
+        .gap(6)
+        .items_center()
+        .text_size(10.5)
+        .font_medium()
+        .cursor_pointer()
+        .hover((s) => s.text_color(t.foreground))
+        .on_click((_e, cx) => {
+          open ? this.folded.add(g.id) : this.folded.delete(g.id);
+          cx.notify();
+        })
+        .child(div().truncate().text_color(t[g.status] ?? t.dim).child(g.label))
+        .when(byPriority || !open, (el) => el.child(div().text_color(t.dim).child(String(g.members.length))))
+        .child(div().flex_1())
+        .when(!open, (el) => el
+          .when(!byPriority && top && top !== "idle", (el) => el.child(this.status(t, { status: top }, true)))
+          .child(svg("mods/workspace-chrome/chevron-right.svg").size(11).flex_none().text_color(t.dim)));
+    };
+    const rows = collapsed
+      ? list.flatMap(withKids)
+      : groups.flatMap((g) => [header(g), ...(this.folded.has(g.id) ? [] : g.members.flatMap(withKids))]);
+
+    return v_flex()
+      .relative()
+      .size_full()
+      .min_h(0)
+      .font_family(FONT)
+      .text_size(12.5)
+      .border_t(1)
+      .border_color(MV.divider)
+      .child(gradient(MV.sidebarTop, MV.sidebarBottom, 180))
+          .when(!collapsed, (el) =>
+        el.child(
+          h_flex()
+            .relative()
+            .px(14)
+            .h(28)
+            .flex_none()
+            .items_center()
+            .justify_between()
+            .child(div().text_size(11).font_semibold().text_color(MV.heading).child("AGENTS"))
+            .child(
+              div()
+                .id("ag-sort")
+                .text_size(11)
+                .text_color(t.dim)
+                .hover((s) => s.text_color(t.foreground))
+                .on_click(() => openOverlay({ mod: "mavericks-agents", kind: "popup", width: 200, height: 140, props: { sortMenu: true } }))
+                .tooltip(`Sort agents: ${sort.label}`)
+                .child(svg(`mods/workspace-chrome/${sort.icon}.svg`).size(14)),
+            ),
+        ),
+      )
+      .when(list.length === 0 && !collapsed, (el) =>
+        el.child(div().px(12).text_size(12).text_color(t.dim).child("No agent status yet. Agents show up here when they report their status. Older versions and agents inside tmux may not.")),
+      )
+      .child(v_flex().id("ag-list").flex_1().min_h(0).px(collapsed ? RAIL_INSET : 8).when(collapsed, (el) => el.pt(4)).overflow_y_scrollbar().mode("always").children(rows))
+      .when(collapsed, (el) =>
+        el.child(
+          h_flex()
+            .h(28)
+            .items_center()
+            .justify_center()
+            .child(
+              div()
+                .id("collapse")
+                .text_size(13)
+                .text_color(t.dim)
+                .hover((s) => s.text_color(t.foreground))
+                .on_click(toggleSidebar)
+                .child("»"),
+            ),
+        ),
+      );
+  }
+}
