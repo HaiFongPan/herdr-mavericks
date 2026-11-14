@@ -1,0 +1,7 @@
+.DS_Store
+*.png
+!*preview*.png
+!layouts/*.png
+# Herdr 载入 mod 时自己生成的编辑器类型提示
+gpui-kit.d.ts
+jsconfig.json
