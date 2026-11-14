@@ -318,18 +318,12 @@ export default class Agents extends View {
       const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
       if (collapsed) {
         // 图标轨：只留 agent 的程序图标，右下角一颗状态灯。
-        const glyph = a.status === "working"
-          ? svg("mods/workspace-chrome/spinner.svg").size(10).flex_none().text_color(t.working).spin(900)
-          : a.status === "blocked"
-            ? div().size(6).rounded(3).bg(t.blocked)
-            : a.status === "done"
-              ? div().size(6).rounded(3).bg(t.done)
-              : div().size(6).rounded(3).border(1.5).border_color(t.idle ?? t.dim);
+        // 状态灯现在画在图标正后方（见下），这里不再用角标。
         const face = a.program?.icon
           ? (a.program.tint
-              ? svg(a.program.icon).size(15).flex_none().text_color(a.focused ? "#ffffff" : t.muted)
-              : image(a.program.icon).w(15).h(15).flex_none())
-          : svg("mods/workspace-chrome/terminal.svg").size(15).flex_none().text_color(a.focused ? "#ffffff" : t.muted);
+              ? svg(a.program.icon).size(16).flex_none().text_color(a.focused ? "#ffffff" : t.muted)
+              : image(a.program.icon).w(16).h(16).flex_none())
+          : svg("mods/workspace-chrome/terminal.svg").size(16).flex_none().text_color(a.focused ? "#ffffff" : t.muted);
         return h_flex()
           .id(`ag-${a.address}`)
           .relative()
@@ -343,8 +337,10 @@ export default class Agents extends View {
           .when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
           .tooltip(label(a))
           .on_click(() => run("pane.focus", { pane: a.pane }))
-          .child(h_flex().relative().items_center().justify_center().child(face))
-          .child(div().absolute().right(1).bottom(1).child(glyph));
+          .child(div().relative().size(24).flex().items_center().justify_center()
+            .when(a.status === "working" || a.status === "blocked" || a.status === "done",
+              (el) => el.child(div().absolute().size(24).rounded(12).bg(t[a.status] + "40")))
+            .child(face));
       }
       const when = this.since(a);
       const idle = a.status === "idle" && !a.focused;

@@ -24,12 +24,12 @@ export default class Brand {
     const width = sidebar?.size?.px ?? 220;
     const collapsed = width < 160;
     const mac = w?.platform === "macos" && !w.fullscreen;
-    const lights = mac ? 76 : 8;
+    const lights = mac ? Math.min(76, width) : 8;
 
     const toggle = () => {
       const wide = width >= 160;
       if (wide) setShared("sidebar.width", width);
-      run("layout.resize", { id: "sidebar", px: wide ? (mac ? 76 : 44) : (shared("sidebar.width") ?? 220) });
+      run("layout.resize", { id: "sidebar", px: wide ? (mac ? 68 : 44) : (shared("sidebar.width") ?? 220) });
     };
 
     return h_flex()

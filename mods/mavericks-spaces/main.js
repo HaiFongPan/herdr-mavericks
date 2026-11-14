@@ -335,7 +335,7 @@ export default class Spaces extends View {
       const folded = this.folded.has(m);
       const icon = svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(13).flex_none();
       const badge = div().absolute().right(-3).bottom(-2).size(6).rounded(3).border_1().border_color(t.chrome).bg(connected ? t.ansi2 : t.dim);
-      const head = h_flex().id(`machine-${m ?? "local"}`).h(26).flex_none().px(collapsed ? 0 : 8).gap(7).items_center().text_size(11).text_color(t.dim)
+      const head = h_flex().id(`machine-${m ?? "local"}`).h(collapsed ? 24 : 26).flex_none().px(collapsed ? 0 : 8).gap(7).items_center().text_size(11).text_color(t.dim)
         .when(collapsed, el => el.mt(4).w(RAIL_CELL).justify_center().rounded(6).tooltip(login ? `${m} needs a login: run ${login}. Click for Copy.` : m ? `${m} · ${connected ? "connected" : (machine?.state ?? "asleep").replace(/_/g, " ")}` : "This computer"))
         .cursor_pointer().hover(s => s.bg(t.hover))
         .on_click((_e, cx) => {
@@ -345,7 +345,10 @@ export default class Spaces extends View {
           cx.notify();
         })
         .when(!collapsed, el => el.child(icon))
-        .when(collapsed, el => el.child(div().relative().flex_none().child(icon).when(Boolean(m), el => el.child(badge))))
+        .when(collapsed, el => el.child(
+          div().relative().size(24).flex().items_center().justify_center()
+            .when(Boolean(m), (box) => box.child(div().absolute().size(24).rounded(12).bg((connected ? t.ansi2 : t.dim) + "33")))
+            .child(icon)))
         .when(!collapsed, el => el.child(div().flex_1().truncate().child(m ?? "This computer"))
           .when(!connected && !rebuilt && !login, el => el.child(div().flex_none().child((machine?.state ?? "asleep").replace(/_/g, " "))))
           .when(rebuilt, el => el.child(h_flex().flex_none().gap(3).items_center()
@@ -478,10 +481,9 @@ export default class Spaces extends View {
       .when(!w.active, (el) => el.hover((s) => s.bg(t.hover)))
       .on_click(() => run("space.select", { id: w.id }))
       .tooltip(w.name)
-      .child(h_flex().relative().size(16).flex_none().rounded(4).bg(fill).items_center().justify_center().text_size(9.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?"))
-      .when(urgent, (el) => el.child(
-        div().absolute().right(1).bottom(1).size(6).rounded(3).border_1()
-          .border_color(w.active ? MV.accentDark : t.chrome).bg(tone(t, w.status)))));
+      .child(div().relative().size(24).flex().items_center().justify_center()
+        .when(urgent, (el) => el.child(div().absolute().size(24).rounded(12).bg(tone(t, w.status) + "40")))
+        .child(h_flex().size(16).flex_none().rounded(4).bg(fill).items_center().justify_center().text_size(9.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?"))));
   }
 
   render() {
