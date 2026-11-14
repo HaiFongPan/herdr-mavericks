@@ -35,6 +35,13 @@ function find(node, id) {
 // The sidebar's rail goes by its width, not a flag: dragging its edge narrows it too.
 const narrow = () => (find(layout(), "sidebar")?.size?.px ?? Infinity) < 160;
 
+// 图标轨：左右留白与展开态一致；状态点跟在图标后面（自己的列，列宽只够放一颗 5px 的点）。
+const RAIL_INSET = 6;
+const RAIL_ROW = 24;
+const RAIL_GAP = 4;
+const RAIL_DOT = 6;
+const railDot = (dotEl) => h_flex().w(RAIL_DOT).flex_none().h_full().items_center().justify_center().when(Boolean(dotEl), el => el.child(dotEl));
+
 // To the rail (on macOS wide enough for the traffic lights), or back to the width it had.
 function toggleSidebar() {
   const width = find(layout(), "sidebar")?.size?.px;
@@ -317,8 +324,7 @@ export default class Agents extends View {
       // An agent on another machine (`vps/t7`) says which.
       const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
       if (collapsed) {
-        // 图标轨：只留 agent 的程序图标，右下角一颗状态灯。
-        // 状态灯现在画在图标正后方（见下），这里不再用角标。
+        // 图标轨：只留 agent 的程序图标与一颗状态点；状态点与机器连接点同列、同宽、同样 5px。
         const face = a.program?.icon
           ? (a.program.tint
               ? svg(a.program.icon).size(16).flex_none().text_color(a.focused ? "#ffffff" : t.muted)
@@ -327,9 +333,10 @@ export default class Agents extends View {
         return h_flex()
           .id(`ag-${a.address}`)
           .relative()
-          .w(28)
-          .h(24)
+          .w_full()
+          .h(RAIL_ROW)
           .flex_none()
+          .gap(RAIL_GAP)
           .items_center()
           .justify_center()
           .rounded(5)
@@ -337,10 +344,8 @@ export default class Agents extends View {
           .when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
           .tooltip(label(a))
           .on_click(() => run("pane.focus", { pane: a.pane }))
-          .child(div().relative().size(24).flex().items_center().justify_center()
-            .when(a.status === "working" || a.status === "blocked" || a.status === "done",
-              (el) => el.child(div().absolute().size(24).rounded(12).bg(t[a.status] + "40")))
-            .child(face));
+          .child(face)
+          .child(railDot(div().size(5).rounded(3).flex_none().bg(t[a.status] ?? t.dim)));
       }
       const when = this.since(a);
       const idle = a.status === "idle" && !a.focused;
@@ -476,7 +481,7 @@ export default class Agents extends View {
       .when(list.length === 0 && !collapsed, (el) =>
         el.child(div().px(12).text_size(12).text_color(t.dim).child("No agent status yet. Agents show up here when they report their status. Older versions and agents inside tmux may not.")),
       )
-      .child(v_flex().id("ag-list").flex_1().min_h(0).px(collapsed ? 0 : 8).overflow_y_scrollbar().mode("always").when(collapsed, (el) => el.items_center()).children(rows))
+      .child(v_flex().id("ag-list").flex_1().min_h(0).px(collapsed ? RAIL_INSET : 8).when(collapsed, (el) => el.pt(4)).overflow_y_scrollbar().mode("always").children(rows))
       .when(collapsed, (el) =>
         el.child(
           h_flex()

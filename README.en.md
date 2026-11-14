@@ -41,6 +41,9 @@ Herdr falls back to Geist / JetBrains Mono.
 
 - The sidebar runs the full height of the window: its brand row leaves room for the traffic
   lights with the collapse button on the right; Settings and Add machine sit at its bottom.
+- Narrowed below 160px the sidebar becomes an icon rail: one 16px icon per row, a 5px status dot
+  after it (machine connection, space state and agent state share the column), and the selected
+  row's highlight spans the whole rail. The rail has no expand button; `cmd-b` brings the sidebar back.
 - Sidebar and work area share one 1px divider; dragging the sidebar edge moves the tabs with it.
 - The work-area toolbar is one row: tabs (starting at the sidebar's right edge), Files / Changes
   (when the layout has the panel), split right, split down, find, new tab. It drags the window;

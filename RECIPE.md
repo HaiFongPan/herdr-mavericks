@@ -10,16 +10,19 @@
 侧栏贯通窗口的整个高度，右侧是工作区；工作区自上而下是工具栏、pane 区和状态栏。
 
 1. **侧栏，220px（可拖 180–420）**：`#ededed → #e3e3e3`。顶部 40px 的 brand 行：
-   最左 78px 留给 macOS 的系统交通灯（`traffic_lights [12, 13]`），中间是 12px 半粗的「Herdr」，
-   右边靠边是侧栏收缩按钮（13px 图标，悬停浅灰，窄于 160px 时整个侧栏收成图标轨）。
+   最左 78px 留给 macOS 的系统交通灯（`traffic_lights [12, 13]`），右边靠边是侧栏收缩按钮
+   （13px 图标，悬停浅灰，窄于 160px 时整个侧栏收成图标轨）。
    下面是 `SPACES` / `AGENTS` 两个 11px 半粗 `#6f6f6f` 的分组标题。
    空间行 26px 高、5px 圆角：16px 彩色圆角方块 + 首字母、空间名 12.5px、右侧仓库/分支/↑↓；
    选中行是系统蓝渐变（`#6fa8e8 → #2c62b8`）白字，次级文字用半透明白。
    agent 行同样是 26px：程序图标、名称、悬停时出现 pin，右侧状态点或时长。
-   最底部 22px 是 Settings 与 Add machine 两个 11px 图标。
-   窄于 160px 时收成 68px 图标轨：机器行是 12px 机器图标后面跟一颗 5px 连接点（绿=已连，灰=断开），
-   space 是 16px 彩色圆角方块，agent 是 16px 程序图标；agent 状态是图标背后 24px 的半透明色圈
-   （working 橙、blocked 红、done 绿），三列都是 24px 容器居中、互相对齐。
+   最底部 22px 是 Settings（齿轮）与 Add machine 两个 11px 图标。
+   窄于 160px 时收成 68px 图标轨：每行 24px 高、左右各留 6px（与展开态的行内边距一致），
+   选中行的高亮铺满这一行；行里是 16px 图标 + 4px 间隔 + 6px 状态点列（只够放一颗 5px 的点）。
+   机器、space、agent 三类行用同一套格子，图标与状态点因此上下对齐：
+   机器是 16px 图标 + 连接点（绿=已连，灰=断开），space 是 16px 彩色圆角方块 + 它的状态点
+   （working 橙、blocked 红、done 绿，不需要你看时不画），agent 是 16px 程序图标 + 状态点
+   （idle 灰、working 橙、blocked 红、done 绿）。展开完整侧栏用 `cmd-b`（图标轨里不放展开按钮）。
 2. **工作区工具栏，40px**：`#efefef → #d9d9d9`，底部 1px `#9a9a9a`。
    标签页从侧栏右边缘开始（与下面 pane 左缘对齐），每个 26px 高、5px 圆角；
    活动标签 `#f6f6f6 → #ededed` 渐变 + 1px `#a5a5a5` 描边 + 细阴影，其余透明、悬停变浅灰。
@@ -39,9 +42,10 @@
 
 - 侧栏 brand 行与工作区工具栏都是窗口拖动区（`window_drag`）；按钮和标签都在 mouse down 时
   `stop_propagation`，不会误拖窗。
-- 工具栏：侧栏按钮 `layout.toggle {id: "sidebar"}`；Files / Changes 切 `layout.show|hide|select`
+- 工具栏：Files / Changes 切 `layout.show|hide|select`
   并记住 `panel-body` 的当前子项；分屏 `pane.split {direction}`；查找 `terminal.search`；
-  `+` 打开 Herdr 的 new-menu。
+  `+` 打开 Herdr 的 new-menu。侧栏的伸缩（brand 行的按钮、`cmd-b`）走 `layout.resize {id: "sidebar"}`，
+  整条收起时用 `cmd-b`（`layout.toggle:sidebar`）。
 - 标签：单击 `tab.select`，双击 `tab.rename`，按住拖动 `tab.move`，右键打开 `mavericks-menu`，
   滚轮 `tab.prev` / `tab.next`。关闭按钮和 12px 状态槽始终占位，只在活动或悬停时显示，
   标签宽度不随指针跳动。
@@ -104,5 +108,5 @@
   （顶部 brand 行留交通灯位、右侧收缩按钮，底部 Settings / Add machine），右侧工作区顶部是
   40px 工具栏（标签页、Files/Changes、分屏、查找、`+`），下面是 24px pane 标题与 22px 状态栏。
 - 拖动侧栏边界，标签页起点跟着侧栏右缘移动；侧栏与工作区之间只有 1px 线，pane 交界也只有 1px。
-- 点侧栏按钮能隐藏/显示侧栏，点 `+` 能开新建菜单，右键标签和空间出现 10.9 式菜单，选中行是蓝色渐变白字。
+- 点 brand 行的按钮（或 `cmd-b`）能隐藏/显示侧栏，点 `+` 能开新建菜单，右键标签和空间出现 10.9 式菜单，选中行是蓝色渐变白字。
 - 切回 `main` 布局外观与安装前一致。

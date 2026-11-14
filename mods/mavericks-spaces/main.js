@@ -44,8 +44,15 @@ function place(s, ps) {
   return ps.find((p) => tabs.has(p.tab) && p.cwd)?.cwd || s.folder;
 }
 const rowHeight = ({ tree }) => (tree ? 25 : 26);
-const RAIL_CELL = 28;
-const railCell = (el) => h_flex().flex_none().justify_center().child(el);
+// 图标轨（侧栏窄于 160px）：左右留白与展开态一致，每行高度固定。
+const RAIL_INSET = 6;
+const RAIL_ROW = 24;
+// 状态点跟在图标后面（自己的列，列宽只够放一颗 5px 的点）：
+// 图标 + 间隔 + 点列 居中，所以三个列表的图标与点都对得上。
+const RAIL_GAP = 4;
+const RAIL_DOT = 6;
+const railDot = (dotEl) => h_flex().w(RAIL_DOT).flex_none().h_full().items_center().justify_center().when(Boolean(dotEl), el => el.child(dotEl));
+const dot = (color) => div().size(5).rounded(3).flex_none().bg(color);
 const where = (s, ps) => JSON.stringify([s.machine ?? null, place(s, ps)]);
 const base = (path) => path.replace(/\/+$/, "").split("/").pop();
 // Changes made outside Herdr (an editor's save, a commit in another app): looked
@@ -322,7 +329,7 @@ export default class Spaces extends View {
       return layout === "loading" || (!layout && this.machines.some(k => k.name === m && k.state === "connected"))
         || spaces().some(s => (s.machine ?? null) === m && !this.shown.has(s.id));
     };
-    const loadingRow = m => h_flex().id(`machine-loading-${m ?? "local"}`).h(28).flex_none().px(collapsed ? 0 : 8).items_center().when(collapsed, el => el.justify_center()).text_size(12).text_color(t.dim).child(collapsed ? "…" : "Loading…");
+    const loadingRow = m => h_flex().id(`machine-loading-${m ?? "local"}`).h(collapsed ? RAIL_ROW : 28).flex_none().px(collapsed ? 0 : 8).items_center().when(collapsed, el => el.w_full().justify_center()).text_size(12).text_color(t.dim).child(collapsed ? "…" : "Loading…");
     if (!remote.length) return loading(null) && !rows.length ? [loadingRow(null)] : rows.map(draw);
     const machineNames = [null, ...remote];
     return machineNames.flatMap((m) => {
@@ -335,8 +342,8 @@ export default class Spaces extends View {
       const folded = this.folded.has(m);
       const icon = svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(13).flex_none();
       const badge = div().absolute().right(-3).bottom(-2).size(6).rounded(3).border_1().border_color(t.chrome).bg(connected ? t.ansi2 : t.dim);
-      const head = h_flex().id(`machine-${m ?? "local"}`).h(collapsed ? 24 : 26).flex_none().px(collapsed ? 0 : 8).gap(7).items_center().text_size(11).text_color(t.dim)
-        .when(collapsed, el => el.mt(4).w(RAIL_CELL).justify_center().rounded(6).tooltip(login ? `${m} needs a login: run ${login}. Click for Copy.` : m ? `${m} · ${connected ? "connected" : (machine?.state ?? "asleep").replace(/_/g, " ")}` : "This computer"))
+      const head = h_flex().id(`machine-${m ?? "local"}`).h(collapsed ? RAIL_ROW : 26).flex_none().px(collapsed ? 0 : 8).gap(collapsed ? RAIL_GAP : 7).items_center().text_size(11).text_color(t.dim)
+        .when(collapsed, el => el.mt(4).w_full().justify_center().rounded(5).tooltip(login ? `${m} needs a login: run ${login}. Click for Copy.` : m ? `${m} · ${connected ? "connected" : (machine?.state ?? "asleep").replace(/_/g, " ")}` : "This computer"))
         .cursor_pointer().hover(s => s.bg(t.hover))
         .on_click((_e, cx) => {
           if (collapsed && login) { run("app.settings", { section: "machines" }); return; }
@@ -345,12 +352,10 @@ export default class Spaces extends View {
           cx.notify();
         })
         .when(!collapsed, el => el.child(icon))
-        // 连接状态还是原来的小点，只是放到机器图标后面（紧贴图标下方），
-        // 不再用整块色晕、也不放右下角。
+        // 机器图标与 space 的方块同为 16px；连接状态点跟在图标后面，占自己的一列。
         .when(collapsed, el => el.child(
-          div().relative().size(24).flex().items_center().justify_center().gap(3)
-            .child(svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(12).flex_none().text_color(t.textMuted ?? t.muted))
-            .child(div().size(5).rounded(3).flex_none().bg(connected ? t.ansi2 : t.dim))))
+          svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(16).flex_none().text_color(t.muted))
+          .child(railDot(dot(connected ? t.ansi2 : t.dim))))
         .when(!collapsed, el => el.child(div().flex_1().truncate().child(m ?? "This computer"))
           .when(!connected && !rebuilt && !login, el => el.child(div().flex_none().child((machine?.state ?? "asleep").replace(/_/g, " "))))
           .when(rebuilt, el => el.child(h_flex().flex_none().gap(3).items_center()
@@ -364,15 +369,15 @@ export default class Spaces extends View {
             .on_click((_e, cx) => { cx.stop_propagation(); run("space.new", { machine: m ?? "" }); }).child("+")))
           .child(div().size(6).rounded(3).flex_none().bg(connected ? t.ansi2 : t.dim))
           .child(svg(`mods/workspace-chrome/chevron-${folded ? "right" : "down"}.svg`).size(11).flex_none()));
-      const empty = h_flex().id(`machine-new-${m ?? "local"}`).h(28).flex_none().px(collapsed ? 0 : 8).gap(7).items_center().rounded(7)
+      const empty = h_flex().id(`machine-new-${m ?? "local"}`).h(collapsed ? RAIL_ROW : 28).flex_none().px(collapsed ? 0 : 8).gap(collapsed ? RAIL_GAP : 7).items_center().rounded(5)
         .text_size(12).text_color(t.dim).hover(s => s.bg(t.hover).text_color(t.foreground))
         .on_click(() => run("space.new", { machine: m ?? "" }))
-        .when(collapsed, el => el.w(RAIL_CELL).rounded(6).justify_center().tooltip(`New space on ${m ?? "this computer"}`)
+        .when(collapsed, el => el.w_full().justify_center().tooltip(`New space on ${m ?? "this computer"}`)
           .child(h_flex().size(18).rounded(5).border_1().border_color(t.dim).items_center().justify_center()
-            .child(svg("mods/workspace-chrome/plus.svg").size(10))))
+            .child(svg("mods/workspace-chrome/plus.svg").size(10)))
+          .child(railDot(null)))
         .when(!collapsed, el => el.child(svg("mods/workspace-chrome/plus.svg").size(12)).child("New space there"));
       if (!collapsed && rebuilt) return [head];
-      const cell = collapsed ? railCell : (el) => el;
       const guidance = !collapsed && login ? [v_flex().px(8).pb(6).gap(3).flex_none()
         .child(div().text_size(11).text_color(t.blocked).child("needs a login: run"))
         .child(h_flex().gap(5).items_center()
@@ -381,7 +386,7 @@ export default class Spaces extends View {
             .text_size(11).text_color(t.foreground).bg(t.raised).cursor_pointer().hover(s => s.bg(t.hover))
             .on_click((_e, cx) => { cx.stop_propagation(); cx.write_to_clipboard(login); this.copiedLogin = login; cx.notify(); })
             .child(this.copiedLogin === login ? "Copied" : "Copy")))] : [];
-      return [cell(head), ...guidance, ...(folded ? [] : mine.length ? mine.map(draw) : [loading(m) ? loadingRow(m) : cell(empty)])];
+      return [head, ...guidance, ...(folded ? [] : mine.length ? mine.map(draw) : [loading(m) ? loadingRow(m) : empty])];
     });
   }
 
@@ -470,22 +475,24 @@ export default class Spaces extends View {
     const color = colors[w.id] ?? "ansi6";
     const fill = color.startsWith("#") ? color : (MARK[color] ?? t[color]);
     const urgent = w.status === "blocked" || w.status === "done" || w.status === "working";
-    // 图标轨：机器分组头在上（图标 + 连接状态），每个 space 只留彩色方块与状态点。
-    return railCell(h_flex()
+    // 图标轨：机器分组头在上（图标 + 连接状态），每个 space 只留彩色方块与一颗状态点。
+    // 高亮铺满整行（两侧留白与展开态一致），方块与状态点靠在一起居中。
+    return h_flex()
       .id(`space-${w.id}`)
       .relative()
-      .w(RAIL_CELL)
-      .h(24)
+      .w_full()
+      .h(RAIL_ROW)
+      .flex_none()
       .rounded(5)
-      .justify_center()
+      .gap(RAIL_GAP)
       .items_center()
+      .justify_center()
       .when(w.active, (el) => el.child(gradient(MV.accentLight, MV.accentDark, 180)))
       .when(!w.active, (el) => el.hover((s) => s.bg(t.hover)))
       .on_click(() => run("space.select", { id: w.id }))
       .tooltip(w.name)
-      .child(div().relative().size(24).flex().items_center().justify_center()
-        .when(urgent, (el) => el.child(div().absolute().size(24).rounded(12).bg(tone(t, w.status) + "40")))
-        .child(h_flex().size(16).flex_none().rounded(4).bg(fill).items_center().justify_center().text_size(9.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?"))));
+      .child(h_flex().size(16).flex_none().rounded(4).bg(fill).items_center().justify_center().text_size(9.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?"))
+      .child(railDot(urgent ? dot(tone(t, w.status)) : null));
   }
 
   render() {
@@ -503,14 +510,16 @@ export default class Spaces extends View {
       changed = true;
     }
     if (changed) setShared("space.colors", kept);
+    const newSpace = div().id("space-new").size(22).flex_none().flex().items_center().justify_center().rounded(4).text_color(MV.heading).hover(s => s.bg(t.hover).text_color(t.foreground))
+      .on_click(() => run("space.new")).child(svg("mods/workspace-chrome/plus.svg").size(13));
     return v_flex().relative().size_full().min_h(0).font_family(FONT).text_size(12.5)
       .child(gradient(MV.sidebarTop, MV.sidebarBottom, 180))
-          .child(h_flex().relative().h(28).pl(collapsed ? 0 : 14).pr(8).items_center().justify_between()
-        .when(collapsed, el => el.pl(0).pr(0).justify_center())
-        .when(!collapsed, el => el.child(div().text_size(11).font_semibold().text_color(MV.heading).child("SPACES")))
-        .child(div().id("space-new").size(22).flex_none().flex().items_center().justify_center().rounded(4).text_color(MV.heading).hover(s => s.bg(t.hover).text_color(t.foreground))
-          .on_click(() => run("space.new")).child(svg("mods/workspace-chrome/plus.svg").size(13))))
-      .child(v_flex().relative().flex_1().min_h(0).px(collapsed ? 0 : 6).pb(12).overflow_y_scrollbar().mode("always")
+          .child(h_flex().relative().h(collapsed ? RAIL_ROW : 28).pl(collapsed ? RAIL_INSET : 14).pr(collapsed ? RAIL_INSET : 8).items_center().justify_between()
+        .when(collapsed, el => el.mt(4).justify_center().gap(RAIL_GAP))
+            .when(!collapsed, el => el.child(div().text_size(11).font_semibold().text_color(MV.heading).child("SPACES")))
+        .when(collapsed, el => el.child(newSpace).child(railDot(null)))
+        .when(!collapsed, el => el.child(newSpace)))
+      .child(v_flex().relative().flex_1().min_h(0).px(RAIL_INSET).pb(12).overflow_y_scrollbar().mode("always")
         .on_mouse_up("left", (_e, cx) => { this.pressed = null; cx.notify(); })
         .children(this.grouped(t, collapsed)));
   }
