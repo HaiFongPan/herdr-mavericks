@@ -25,7 +25,7 @@ herdr-app do layout.switch --name mavericks
 |---|---|
 | `layouts/mavericks.json` | 整窗结构：贯通到底的侧栏（顶部 brand 行留交通灯位）+ 工作区（工具栏、pane、状态栏）；`titlebar: none`，系统交通灯画在 `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | 浅色主题：10.9 的灰阶 chrome、系统蓝强调色、Terminal.app Basic 的 16 色 |
-| `themes/mavericks-dark.json` | 黑底变体：chrome 不变，终端换 Terminal.app Homebrew 的黑底配色 |
+| `themes/mavericks-dark.json` | 深色外观：同一个 10.9 结构换成深灰阶 chrome（侧栏、工具栏、标签、pane 标题、状态栏、面板、菜单），终端用 Terminal.app Homebrew 的黑底 16 色 |
 | `mods/mavericks/` | 自绘部件，按 `props.role` 分工：`brand`（侧栏顶部）、`chrome`（标签页）、`pane`、`status`、`footer`（Settings / Add machine） |
 | `mods/mavericks-spaces/` | 侧栏空间列表（克隆自 Herdr 的 `spaces`，只改外观：字体、行高、圆角、系统蓝选中） |
 | `mods/mavericks-agents/` | 侧栏 agent 列表（克隆自 `agents`，同上） |
@@ -46,9 +46,11 @@ herdr-app do layout.switch --name mavericks
   （露出被挡住的标签，不再切换标签；切标签用 `cmd-shift-[` / `cmd-shift-]` 或点选）。
   关闭按钮和状态位固定占位，悬停时只变可见度，标签宽度不会跳。
 - 工作区底部状态栏：终端图标、当前路径与分支、标签数、agent 状态计数。
-- 分隔线只画一层：侧栏与工作区之间是一条 root `divider`；pane 没有边框，pane 之间、pane 与 Files 面板之间靠 1px 间隙露出 `#b8b8b8`；聚焦用 pane 标题栏的深浅表示。
+- 分隔线只画一层：侧栏与工作区之间是一条 root `divider`；pane 没有边框，pane 之间、pane 与 Files 面板之间靠 1px 间隙露出主题的 `border` 色（浅色 `#b8b8b8` / 深色 `#1d1d1d`）；聚焦用 pane 标题栏的深浅表示。
 - 侧栏空间：点击切换、右键菜单、拖动排序；agent 行点击跳到对应 pane。
 - pane 标题：点击聚焦、双击缩放；悬停露出分屏 / 缩放 / 关闭。
+- 外观跟随系统：浅色用 `mavericks`、深色用 `mavericks-dark`，侧栏、工具栏、终端、面板一起切，一秒内生效。
+  主题菜单只换当前外观那一半（浅色外观下看到 `mavericks`，深色下看到 `mavericks-dark`），要手动换色就切外观。
 
 ## 已知边界
 
@@ -60,4 +62,7 @@ herdr-app do layout.switch --name mavericks
 - Herdr 内置的终端查找条（`terminal.search`）不是 mod，没有样式接口：`find` 输入框的内边距改不了。
 - `mavericks-spaces` / `mavericks-agents` 是 Herdr 0.1.15 的克隆，Herdr 升级后如果内部数据或 API 变了，这两个要跟着更新（或重新 `mod.clone` 再套用本仓库的样式改动）。
 - 没做 Dock、Launchpad、菜单栏、音效：它们和窗口内容无关，或需要额外的常驻悬浮块。
-- 终端默认白底（Terminal.app Basic）。布局主题是 `{ light: "mavericks", dark: "mavericks-dark" }`：系统切到深色外观，或在上方主题菜单里选 `mavericks-dark`，终端就变黑底（Terminal.app Homebrew）。
+- 终端浅色外观是白底（Terminal.app Basic），深色外观是黑底（Terminal.app Homebrew）。布局主题是
+  `{ light: "mavericks", dark: "mavericks-dark" }`：跟随系统外观，也可以在上方主题菜单里手动选。
+- Herdr 换外观时不会重绘布局里的 mod，所以各个 mod 每秒比对一次主题签名，变了才重绘；
+  从切外观到整窗变色最多晚约一秒。

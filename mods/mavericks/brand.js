@@ -4,7 +4,7 @@
 import { div } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { run, layout, shared, setShared, window as appWindow } from "herdr";
-import { M, FONT, gradient, hairline, icon, toolbarButton } from "./kit.js";
+import { palette, FONT, gradient, hairline, icon, toolbarButton } from "./kit.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -19,6 +19,7 @@ export default class Brand {
   init() {}
 
   render() {
+    const M = palette();
     const w = appWindow();
     const sidebar = find(layout(), "sidebar");
     const width = sidebar?.size?.px ?? 220;

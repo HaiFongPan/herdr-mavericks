@@ -13,10 +13,10 @@
     12,
     13
   ],
-  "background": "#e9e9e9",
+  "background": "canvas",
   "divider": {
     "width": 1,
-    "color": "#b8b8b8"
+    "color": "border"
   },
   "preview": "layouts/mavericks.png",
   "children": [
@@ -94,7 +94,7 @@
           "id": "work-body",
           "type": "row",
           "gap": 1,
-          "background": "#b8b8b8",
+          "background": "border",
           "children": [
             {
               "id": "main",
@@ -107,11 +107,11 @@
                   "background": "background",
                   "border": {
                     "width": 0,
-                    "color": "#b8b8b8"
+                    "color": "border"
                   },
                   "focus": {
                     "width": 0,
-                    "color": "#9a9a9a"
+                    "color": "input"
                   },
                   "header": {
                     "content": {

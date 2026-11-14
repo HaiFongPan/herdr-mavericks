@@ -8,6 +8,7 @@
 
 import { View, div } from "gpui-kit";
 import { props } from "herdr";
+import { watchAppearance } from "./kit.js";
 import Chrome from "./chrome.js";
 import Pane from "./pane.js";
 import Status from "./status.js";
@@ -22,6 +23,7 @@ export default class Mavericks extends View {
     const R = ROLES[pr.role];
     this.role = R ? new R() : null;
     this.role?.init?.(pr, cx);
+    watchAppearance(cx);
   }
 
   render(cx) {

@@ -4,7 +4,7 @@
 import { div } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { spaces, panes, agents, focused, home, theme } from "herdr";
-import { M, FONT, gradient, hairline, icon } from "./kit.js";
+import { palette, FONT, gradient, hairline, icon } from "./kit.js";
 
 function folder(cwd) {
   if (!cwd) return "";
@@ -16,7 +16,7 @@ export default class Status {
   init() {}
 
   render() {
-    const t = theme();
+    const t = theme(), M = palette();
     const f = focused();
     const p = panes().find(x => x.pane === f?.pane);
     const space = spaces().find(s => s.active);
@@ -42,8 +42,8 @@ export default class Status {
       .items_center()
       .font_family(FONT)
       .text_size(10.5)
-      .child(gradient("#ededed", "#dedede", 180))
-      .child(hairline("#b0b0b0", "top"))
+      .child(gradient(M.statusTop, M.statusBottom, 180))
+      .child(hairline(M.statusBorder, "top"))
       .child(div().relative().flex_none().w(13).h(13).child(icon("terminal", 12, M.textDim)))
       .child(div().relative().flex_1().min_w(0).truncate().text_color(M.textMuted).child(where || (space?.name ?? "")))
       .child(div().relative().flex_none().text_color(M.textDim).child(`${tabs} ${tabs === 1 ? "tab" : "tabs"}`))

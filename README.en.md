@@ -26,7 +26,7 @@ like a layout belongs to it).
 |---|---|
 | `layouts/mavericks.json` | The whole window: a full-height sidebar (its brand row leaves room for the traffic lights) plus the work area (toolbar, panes, status bar). `titlebar: none`; the traffic lights sit at `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | Light theme: 10.9 chrome greys, system-blue accent, Terminal.app Basic 16 colors |
-| `themes/mavericks-dark.json` | Dark terminal variant: same chrome, Terminal.app Homebrew colors |
+| `themes/mavericks-dark.json` | Dark appearance: the same 10.9 structure in dark greys (sidebar, toolbar, tabs, pane headers, status bar, panels, menus), with Terminal.app Homebrew's black terminal |
 | `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `brand` (sidebar top), `chrome` (tabs), `pane`, `status`, `footer` (Settings / Add machine) |
 | `mods/mavericks-spaces/` | Spaces sidebar (cloned from Herdr's `spaces`, looks only: font, row height, radius, system-blue selection) |
 | `mods/mavericks-agents/` | Agents sidebar (cloned from `agents`, same treatment) |
@@ -58,7 +58,8 @@ Herdr falls back to Geist / JetBrains Mono.
   so tabs never jump.
 - The work-area status bar shows the terminal icon, current path and branch, tab count and agent states.
 - Only one line per seam: a root `divider` between sidebar and work area; panes have no border,
-  and the 1px gaps between panes / the Files panel show the `#b8b8b8` background. Focus is shown
+  and the 1px gaps between panes / the Files panel show the theme's `border` colour
+  (`#b8b8b8` light, `#1d1d1d` dark). Focus is shown
   by the pane title bar, not by a border.
 - Spaces: click to select, right-click for the menu, drag to reorder. An agent row focuses
   its pane.
@@ -79,14 +80,20 @@ Herdr falls back to Geist / JetBrains Mono.
   end of the system blue, `#6fa8e8`, where dark text still reads.
 - `mavericks-spaces` / `mavericks-agents` are clones of Herdr 0.1.15. When Herdr's internals
   or APIs change, re-clone and re-apply the styling from this repo.
+- The appearance follows the system: `mavericks` for light, `mavericks-dark` for dark, across
+  sidebar, toolbar, terminals and panels within a second. The theme menu only changes the half
+  the appearance is in, so switch the appearance to see the other one.
 - The Files / Changes panels are hidden by default and open from the toolbar; their logic comes
   from Herdr's `files` / `changes`, only the looks changed.
 - Herdr's built-in terminal find bar (`terminal.search`) is not a mod and has no style hook:
   the padding of its `find` field cannot be changed.
 - No Dock, Launchpad, menu bar or sounds: they are outside the window content, or need an
   extra always-on floating block.
-- The terminal defaults to light (Terminal.app Basic). The layout theme is
-  `{ light: "mavericks", dark: "mavericks-dark" }`: switch the system to dark appearance, or
-  pick `mavericks-dark` in the theme menu, for a black terminal (Terminal.app Homebrew).
+- The terminal is white on Terminal.app Basic in light appearance and black on Terminal.app
+  Homebrew in dark. The layout theme is `{ light: "mavericks", dark: "mavericks-dark" }`: it
+  follows the system, and the theme menu changes the half you are in.
+- Herdr does not redraw layout mods when the appearance changes, so each mod compares the theme
+  signature once a second and redraws only when it differs: the window can take up to a second
+  to change colour after the switch.
 - `herdr-app shot` does not include the macOS system traffic lights (the system draws them
   above the layout), so they are missing from `preview.png`.
