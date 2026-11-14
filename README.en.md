@@ -46,8 +46,11 @@ Herdr falls back to Geist / JetBrains Mono.
   row's highlight spans the whole rail. The rail has no expand button; `cmd-b` brings the sidebar back.
 - Sidebar and work area share one 1px divider; dragging the sidebar edge moves the tabs with it.
 - The work-area toolbar is one row: tabs (starting at the sidebar's right edge), Files / Changes
-  (when the layout has the panel), split right, split down, find, new tab. It drags the window;
-  buttons and tabs stop propagation on mouse-down.
+  (when the layout has the panel), split right, split down, find, new tab — each a separate Aqua
+  capsule, no joined segmented control. It drags the window; buttons and tabs stop propagation on
+  mouse-down. With the sidebar hidden (`cmd-b`) the toolbar sits at the window's left edge and
+  reserves the traffic lights' space (`traffic_lights[0] + 64`, topped up when the sidebar is
+  dragged narrow), so tabs never end up under them.
 - Tabs: click to select, double-click to rename, drag to reorder, right-click for the menu.
   When they overflow the row, the wheel scrolls the tab strip sideways to reveal the hidden
   ones (it no longer switches tabs; use `cmd-shift-[` / `cmd-shift-]` or a click for that),
@@ -63,6 +66,11 @@ Herdr falls back to Geist / JetBrains Mono.
 
 ## Known limits
 
+- Overlay corners show a small light square: Herdr's overlay frame rounds its own 1px border but
+  does not clip the mod's square background, so the popover colour leaks past the rounded corner
+  (keybinds, picker, new-menu, Settings). It is drawn by Herdr, not settable from the theme;
+  cloning a built-in mod and rounding its own root hides it, but the clone would fall behind when
+  Herdr updates, so this repo does not do it.
 - Some Herdr overlays cannot be reskinned: the close confirmation, rename prompts, the
   new-tab menu, the picker, Settings and the command palette (`cmd-shift-p`) still use Herdr's
   own mods and only follow theme colors. The context menu has been replaced by `mavericks-menu`.

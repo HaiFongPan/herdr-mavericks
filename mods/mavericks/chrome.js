@@ -4,8 +4,8 @@
 
 import { div, svg, image } from "gpui-kit";
 import { h_flex, ScrollHandle } from "gpui-base";
-import { spaces, panes, run, openOverlay, layout, theme } from "herdr";
-import { M, FONT, gradient, hairline, icon, segment, toolbarButton, ui } from "./kit.js";
+import { spaces, panes, run, openOverlay, layout, theme, settings, window as win } from "herdr";
+import { M, FONT, gradient, hairline, icon, toolbarButton, ui } from "./kit.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -146,13 +146,21 @@ export default class Chrome {
 
     const group = (...els) => h_flex().relative().flex_none().gap(2).items_center().children(els);
 
+    // 侧栏收起（cmd-b）后这条工具栏贴在窗口左边，系统交通灯画在上面：留出 12 + 64
+    // 的位置，与 Herdr 自己 tabs 的算法一致；侧栏拖着收窄时也要让开。
+    const side = find(root, "sidebar"), w = win();
+    const lights = root?.traffic_lights;
+    const lightsPad = w?.platform === "macos" && w.titlebar === "none" && !w.fullscreen && lights
+      ? Math.max(8, (lights[0] + 64) / (Number(settings()?.zoom) || 1) - (side && !side.hidden ? side.size?.px ?? 0 : 0))
+      : 8;
+
     return h_flex()
       .id("mv-chrome")
       .relative()
       .size_full()
       .items_center()
       .font_family(FONT)
-      .pl(8)
+      .pl(lightsPad)
       .pr(8)
       .gap(6)
       .child(gradient(M.titleTop, M.titleBottom, 180))
@@ -175,8 +183,8 @@ export default class Chrome {
         }, { toggled: Boolean(panelOn("changes")), tooltip: "Changes" }),
       )))
       .child(group(
-        segment("mv-split-right", icon("split-right", 14, M.textMuted), () => run("pane.split", { direction: "right" }), { first: true, tooltip: "Split Right" }),
-        segment("mv-split-down", icon("split-down", 14, M.textMuted), () => run("pane.split", { direction: "down" }), { last: true, tooltip: "Split Down" }),
+        toolbarButton("mv-split-right", icon("split-right", 14, M.textMuted), () => run("pane.split", { direction: "right" }), { tooltip: "Split Right" }),
+        toolbarButton("mv-split-down", icon("split-down", 14, M.textMuted), () => run("pane.split", { direction: "down" }), { tooltip: "Split Down" }),
         toolbarButton("mv-search", icon("search", 14, M.textMuted), () => run("terminal.search"), { tooltip: "Find in Terminal" }),
         toolbarButton("mv-new-tab", icon("plus", 14, M.text), () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 }), {
           tooltip: "New Tab",

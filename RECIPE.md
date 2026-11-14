@@ -28,7 +28,9 @@
    活动标签 `#f6f6f6 → #ededed` 渐变 + 1px `#a5a5a5` 描边 + 细阴影，其余透明、悬停变浅灰。
    每个标签有程序图标、名称（自动编号的显示程序名）、12px 状态槽（转圈或状态点）
    和固定占位的 `×`；标签超出时横向滚动。
-   最右依次是 Files / Changes（布局里有面板时）、向右分屏 / 向下分屏（相连的分段控件）、查找、`+`。
+   最右依次是 Files / Changes（布局里有面板时）、向右分屏、向下分屏、查找、`+`——每个都是独立的
+   Aqua 胶囊按钮，没有连体分段控件。侧栏收起（`cmd-b`）时这条工具栏贴到窗口左边，
+   左侧按 `traffic_lights[0] + 64` 留出交通灯位（侧栏拖窄时按剩余宽度补），标签不会压到交通灯。
 3. **pane 区**：每个 pane 顶部 24px 的标题栏——聚焦时 `#f2f2f2 → #e4e4e4` 深色标题，
    失焦时更淡；12px 程序图标、11.5px 标题、右侧 `~/…` 路径；悬停露出分屏 / 缩放 / 关闭。
    pane 自己没有边框：pane 之间、pane 与右侧面板之间是 1px 间隙，露出 `work-body` 的 `#b8b8b8`。
@@ -92,6 +94,9 @@
 
 - macOS 的系统交通灯由系统画在布局之上，`herdr-app shot` 不一定截得到；换成 Linux/Windows 要自己画按钮（`window().buttons`）。
 - Herdr 自带的关闭确认、重命名输入、new-menu、picker、Settings 不能换皮（调用方写死 mod 名），只跟随主题色。
+- 弹层四角会漏一小块浅色方块：Herdr 的弹层外框只给自己的描边做圆角，不裁 mod 的方形背景
+  （`overflow_hidden` 没管到子视图的 `bg`）。主题改不了；克隆内置 mod 加 `rounded(6) + overflow_hidden()`
+  能盖住，但升级 Herdr 后克隆会落后，所以不做。
 - `mavericks-spaces` / `mavericks-agents` 绑定 Herdr 0.1.15 的内部数据与 helper；升级 Herdr 后先跑
   `herdr-app check`，再对照新版 `spaces` / `agents` 更新。
 - 分隔线只画一层：侧栏与工作区之间是 root `divider`；pane 的 `border` 和 `focus` 都设成 0，
