@@ -39,7 +39,8 @@
    从左到右：终端图标、`~/路径 · 分支`、标签数、working / blocked / done 的 agent 计数点。
    Settings / Add machine 在侧栏底部，与这条状态栏同高。
 
-终端浅色外观是白底黑字（Terminal.app 的 Basic 配色），深色外观是黑底（Terminal.app Homebrew），Menlo 12。
+终端浅色外观是白底黑字（Terminal.app 的 Basic 配色），深色外观是石墨底 `#1f1f1f` + `#ededed` 字
+（16 色见下），Menlo 12。
 
 深色外观（系统深色，或在主题菜单里选 `mavericks-dark`）是同一套 10.9 结构换成深灰阶：
 侧栏 `#3a3a3a → #323232`、工具栏 `#424242 → #353535`、活动标签 `#4c4c4c → #424242`、
@@ -96,7 +97,12 @@ pane 标题 `#4a4a4a → #3f3f3f`（失焦更暗）、状态栏 `#3a3a3a → #2f
   用前景色画行文字，深蓝底上深字看不清，浅一档才读得清。
 - `themes/mavericks-dark.json`：整窗的深色外观——`colors` 里 chrome `#333333`、canvas `#262626`、
   raised `#3a3a3a`、hover `#303030`、border `#1d1d1d`、selected `#2f5f9f` 等，终端是
-  Terminal.app Homebrew 的黑底（`#000000` / `#ffffff` 与它的 16 色）。布局的 `theme` 是
+  石墨底 `#1f1f1f` / `#ededed` 与 16 色。底色不取纯黑：纯黑在 #333333 的侧栏、
+  #3f3f3f 的 pane 标题旁边像一个洞，石墨底才是同一套深灰阶。ANSI 0–7 沿用 Homebrew 的色相但抬亮
+  （红 `#d24141`、蓝 `#4d7ce8`、品红 `#d96bd9`），因为 Homebrew 的 `#990000` / `#0000b2` 在
+  `#1f1f1f` 上对比度只有 1.9 / 1.3，`ls` 的目录蓝和 git 的红会糊在一起；8–15 只抬了蓝和灰
+  （`#0000ff` → `#7aa2ff`、`#666666` → `#8a8a8a`）。`colors.border` 同时压到 `#161616`，
+  让 pane 之间那 1px 接缝在石墨底上仍然看得见。布局的 `theme` 是
   `{ light, dark }`，跟随系统外观；也可以在主题菜单里手动选。布局里原本写死的
   `#e9e9e9` / `#b8b8b8` 换成主题 token `canvas` / `border`，pane 间隙和分隔线才会跟着换。
 - 所有尺寸按 zoom 1 写；Herdr 自己缩放布局，字体大小由 `text_size` 跟随。
@@ -134,6 +140,6 @@ pane 标题 `#4a4a4a → #3f3f3f`（失焦更暗）、状态栏 `#3a3a3a → #2f
 - 拖动侧栏边界，标签页起点跟着侧栏右缘移动；侧栏与工作区之间只有 1px 线，pane 交界也只有 1px。
 - 点 brand 行的按钮（或 `cmd-b`）能隐藏/显示侧栏，点 `+` 能开新建菜单，右键标签和空间出现 10.9 式菜单，选中行是蓝色渐变白字。
 - 把 `settings.json` 的 `appearance` 设成 `dark`（或系统切深色）：一秒内侧栏、工具栏、标签、pane 标题、
-  状态栏、Files/Changes 面板一起变深，终端变黑底；切回 `light` 同样整窗变回浅色，
+  状态栏、Files/Changes 面板一起变深，终端变石墨底；切回 `light` 同样整窗变回浅色，
   不用重开窗口、不用改 mod 文件。
 - 切回 `main` 布局外观与安装前一致。

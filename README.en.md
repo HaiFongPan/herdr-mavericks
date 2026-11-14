@@ -26,7 +26,7 @@ like a layout belongs to it).
 |---|---|
 | `layouts/mavericks.json` | The whole window: a full-height sidebar (its brand row leaves room for the traffic lights) plus the work area (toolbar, panes, status bar). `titlebar: none`; the traffic lights sit at `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | Light theme: 10.9 chrome greys, system-blue accent, Terminal.app Basic 16 colors |
-| `themes/mavericks-dark.json` | Dark appearance: the same 10.9 structure in dark greys (sidebar, toolbar, tabs, pane headers, status bar, panels, menus), with Terminal.app Homebrew's black terminal |
+| `themes/mavericks-dark.json` | Dark appearance: the same 10.9 structure in dark greys (sidebar, toolbar, tabs, pane headers, status bar, panels, menus), with a graphite terminal at `#1f1f1f` and 16 colors to match (Homebrew hues, darks lifted so they read on graphite) |
 | `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `brand` (sidebar top), `chrome` (tabs), `pane`, `status`, `footer` (Settings / Add machine) |
 | `mods/mavericks-spaces/` | Spaces sidebar (cloned from Herdr's `spaces`, looks only: font, row height, radius, system-blue selection) |
 | `mods/mavericks-agents/` | Agents sidebar (cloned from `agents`, same treatment) |
@@ -89,8 +89,8 @@ Herdr falls back to Geist / JetBrains Mono.
   the padding of its `find` field cannot be changed.
 - No Dock, Launchpad, menu bar or sounds: they are outside the window content, or need an
   extra always-on floating block.
-- The terminal is white on Terminal.app Basic in light appearance and black on Terminal.app
-  Homebrew in dark. The layout theme is `{ light: "mavericks", dark: "mavericks-dark" }`: it
+- The terminal is white on Terminal.app Basic in light appearance and graphite (`#1f1f1f`) in
+  dark. The layout theme is `{ light: "mavericks", dark: "mavericks-dark" }`: it
   follows the system, and the theme menu changes the half you are in.
 - Herdr does not redraw layout mods when the appearance changes, so each mod compares the theme
   signature once a second and redraws only when it differs: the window can take up to a second
