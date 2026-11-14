@@ -1,0 +1,18 @@
+Herdr · Mavericks
+Copyright 2026 HaiFongPan
+
+This product includes software developed at Herdr (https://herdr.dev),
+licensed under the Apache License, Version 2.0.
+
+The following mods are styling derivatives of the Herdr desktop app's own
+mods, version 0.1.15 (https://github.com/herdrdev/herdr-app). Their data,
+command and drag logic is Herdr's; only the rendering was changed:
+
+  mods/mavericks-spaces   <- mods/spaces
+  mods/mavericks-agents   <- mods/agents
+  mods/mavericks-menu     <- mods/menu
+  mods/mavericks-files    <- mods/files
+  mods/mavericks-changes  <- mods/changes
+
+Apple, OS X, Aqua and Mavericks are trademarks of Apple Inc. This layout is
+not affiliated with or endorsed by Apple.
