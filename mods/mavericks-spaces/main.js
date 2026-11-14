@@ -348,7 +348,7 @@ export default class Spaces extends View {
         // 连接状态还是原来的小点，只是放到机器图标后面（紧贴图标下方），
         // 不再用整块色晕、也不放右下角。
         .when(collapsed, el => el.child(
-          div().relative().size(24).flex().flex_col().items_center().justify_center()
+          div().relative().size(24).flex().items_center().justify_center().gap(3)
             .child(svg(`mods/workspace-chrome/${m ? "server" : "monitor"}.svg`).size(12).flex_none().text_color(t.textMuted ?? t.muted))
             .child(div().size(5).rounded(3).flex_none().bg(connected ? t.ansi2 : t.dim))))
         .when(!collapsed, el => el.child(div().flex_1().truncate().child(m ?? "This computer"))
