@@ -2,9 +2,9 @@
 
 [中文](README.md) · English
 
-Turn [Herdr](https://herdr.dev) into an OS X 10.9 Mavericks app: one unified toolbar
-(traffic lights, sidebar toggle, tabs and view controls in a single row), Aqua buttons,
-a Finder-style sidebar, native-looking pane title bars, system-blue selection and Helvetica Neue.
+Turn [Herdr](https://herdr.dev) into an OS X 10.9 Mavericks app: a full-height Finder-style
+sidebar, one unified toolbar across the work area (tabs and view controls in a single row),
+Aqua buttons, native-looking pane title bars, system-blue selection and Helvetica Neue.
 
 ![Herdr · Mavericks](preview.png)
 
@@ -24,10 +24,10 @@ like a layout belongs to it).
 
 | Path | Purpose |
 |---|---|
-| `layouts/mavericks.json` | The whole window: toolbar, sidebar, panes, status bar. `titlebar: none`; the system traffic lights sit at `traffic_lights [12, 13]` |
+| `layouts/mavericks.json` | The whole window: a full-height sidebar (its brand row leaves room for the traffic lights) plus the work area (toolbar, panes, status bar). `titlebar: none`; the traffic lights sit at `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | Light theme: 10.9 chrome greys, system-blue accent, Terminal.app Basic 16 colors |
 | `themes/mavericks-dark.json` | Dark terminal variant: same chrome, Terminal.app Homebrew colors |
-| `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `chrome` (tabs included), `pane`, `status` (Settings / Add machine included) |
+| `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `brand` (sidebar top), `chrome` (tabs), `pane`, `status`, `footer` (Settings / Add machine) |
 | `mods/mavericks-spaces/` | Spaces sidebar (cloned from Herdr's `spaces`, looks only: font, row height, radius, system-blue selection) |
 | `mods/mavericks-agents/` | Agents sidebar (cloned from `agents`, same treatment) |
 | `mods/mavericks-menu/` | 10.9 context menu: 22px rows, blue selection, right-aligned shortcuts |
@@ -39,13 +39,18 @@ Herdr falls back to Geist / JetBrains Mono.
 
 ## Interactions
 
-- The whole toolbar drags the window; buttons and tabs stop propagation on mouse-down.
-- One row, left to right: traffic lights space, sidebar toggle, tabs (filling the middle),
-  Files / Changes (when the layout has the panel), split right, split down, find, new tab.
+- The sidebar runs the full height of the window: its brand row leaves room for the traffic
+  lights with the collapse button on the right; Settings and Add machine sit at its bottom.
+- Sidebar and work area share one 1px divider; dragging the sidebar edge moves the tabs with it.
+- The work-area toolbar is one row: tabs (starting at the sidebar's right edge), Files / Changes
+  (when the layout has the panel), split right, split down, find, new tab. It drags the window;
+  buttons and tabs stop propagation on mouse-down.
 - Tabs: click to select, double-click to rename, drag to reorder, right-click for the menu,
   scroll to switch. The close button and status slot keep their width, so tabs never jump.
-- The status bar holds Settings and Add machine on the left, then the current path and branch,
-  tab count and agent states.
+- The work-area status bar shows the terminal icon, current path and branch, tab count and agent states.
+- Only one line per seam: a root `divider` between sidebar and work area; panes have no border,
+  and the 1px gaps between panes / the Files panel show the `#b8b8b8` background. Focus is shown
+  by the pane title bar, not by a border.
 - Spaces: click to select, right-click for the menu, drag to reorder. An agent row focuses
   its pane.
 - Pane title: click to focus, double-click to zoom; hovering reveals split / zoom / close.

@@ -438,8 +438,7 @@ export default class Agents extends View {
       .border_t(1)
       .border_color(MV.divider)
       .child(gradient(MV.sidebarTop, MV.sidebarBottom, 180))
-      .child(div().absolute().right(0).top(0).h_full().w(1).bg(MV.divider))
-      .when(!collapsed, (el) =>
+          .when(!collapsed, (el) =>
         el.child(
           h_flex()
             .relative()

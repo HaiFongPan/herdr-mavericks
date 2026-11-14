@@ -493,8 +493,7 @@ export default class Spaces extends View {
     if (changed) setShared("space.colors", kept);
     return v_flex().relative().size_full().min_h(0).font_family(FONT).text_size(12.5)
       .child(gradient(MV.sidebarTop, MV.sidebarBottom, 180))
-      .child(div().absolute().right(0).top(0).h_full().w(1).bg(MV.divider))
-      .child(h_flex().relative().h(28).pl(collapsed ? 0 : 14).pr(8).items_center().justify_between()
+          .child(h_flex().relative().h(28).pl(collapsed ? 0 : 14).pr(8).items_center().justify_between()
         .when(collapsed, el => el.pl(0).pr(0).justify_center())
         .when(!collapsed, el => el.child(div().text_size(11).font_semibold().text_color(MV.heading).child("SPACES")))
         .child(div().id("space-new").size(22).flex_none().flex().items_center().justify_center().rounded(4).text_color(MV.heading).hover(s => s.bg(t.hover).text_color(t.foreground))

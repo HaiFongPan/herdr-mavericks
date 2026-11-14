@@ -171,7 +171,7 @@ export default class Files extends View {
     if (key() !== this.context?.key) this.refresh(cx);
     const t = theme();
     return v_flex().id("files").size_full().min_h(0).overflow_hidden().bg("#fdfdfd").text_color(PANEL_TEXT).font_family(FONT).text_size(12)
-      .child(h_flex().h(30).flex_none().px(10).gap(8).items_center().border_b(1).border_color("#b8b8b8")
+      .child(h_flex().h(24).flex_none().px(10).gap(8).items_center().border_b(1).border_color("#b8b8b8")
         .when(Boolean(this.file), el => el.child(div().id("files-back").w(20).cursor_pointer().text_color(t.muted).on_click((_e, cx) => { this.show(null); cx.notify(); }).child("←")))
         .child(div().text_size(11.5).font_semibold().child("Files"))
         .child(div().flex_1().min_w(0).truncate().text_right().text_size(12).text_color(t.dim).child(this.file ?? this.root?.split(/[\\/]/).pop() ?? "")))

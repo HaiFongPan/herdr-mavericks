@@ -4,7 +4,7 @@
 
 import { div, svg, image } from "gpui-kit";
 import { h_flex, ScrollHandle } from "gpui-base";
-import { spaces, panes, run, openOverlay, layout, theme, window as appWindow } from "herdr";
+import { spaces, panes, run, openOverlay, layout, theme } from "herdr";
 import { M, FONT, gradient, hairline, icon, segment, toolbarButton, ui } from "./kit.js";
 
 function find(node, id) {
@@ -138,17 +138,10 @@ export default class Chrome {
 
   render() {
     const root = layout();
-    const w = appWindow();
-    const sidebar = find(root, "sidebar");
-    const sidebarOn = sidebar && !sidebar.hidden;
     const panel = find(root, "panel");
     const panelBody = find(root, "panel-body");
     const panelOn = id => panel && !panel.hidden && panelBody?.active === id;
-    const mac = w?.platform === "macos";
-    const lightsInset = mac && !w.fullscreen ? 78 : 8;
-    // 左侧空出与侧栏同宽的区域，标签从侧栏右边缘开始，和下面的 pane 对齐。
-    const sidebarWidth = sidebar && !sidebar.hidden ? (sidebar.size?.px ?? 220) : 0;
-    const leftWidth = Math.max(sidebarWidth, lightsInset + 34);
+
 
     const group = (...els) => h_flex().relative().flex_none().gap(2).items_center().children(els);
 
@@ -158,24 +151,11 @@ export default class Chrome {
       .size_full()
       .items_center()
       .font_family(FONT)
+      .pl(8)
       .pr(8)
       .gap(6)
       .child(gradient(M.titleTop, M.titleBottom, 180))
       .child(hairline(M.titleBorder, "bottom"))
-      .child(
-        h_flex()
-          .relative()
-          .flex_none()
-          .w(leftWidth)
-          .pl(lightsInset)
-          .gap(6)
-          .items_center()
-          .child(toolbarButton("mv-sidebar", icon("sidebar", 14, M.textMuted), () => run("layout.toggle", { id: "sidebar" }), {
-            toggled: Boolean(sidebarOn),
-            tooltip: "Toggle Sidebar",
-          })),
-      )
-      .child(h_flex().relative().flex_none().w(1).h(20).bg("#c2c2c2"))
       .child(this.tabsRow())
       .when(panel, el => el.child(group(
         toolbarButton("mv-files", [icon("files", 14, panelOn("files") ? M.text : M.textMuted), ui(div()).child("Files")], () => {
