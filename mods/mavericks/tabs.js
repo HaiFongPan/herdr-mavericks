@@ -43,7 +43,7 @@ export default class Tabs {
         .text_size(11.5)
         .font_family(FONT)
         .text_color(on ? M.text : M.textMuted)
-        .when(on, el => el.child(gradient(M.tabActiveTop, M.tabActiveBottom, 180)))
+        .when(on, el => el.child(gradient(M.tabActiveTop, M.tabActiveBottom, 180).shadow_xs()))
         .when(!on, el => el.hover(s => s.bg("#e2e2e2")))
         .when(i <= active, el => el.on_size_change((_size, cx) => { this.scroll.scroll_to_item(active); cx.notify(); }))
         .on_mouse_down("left", (e, cx) => {

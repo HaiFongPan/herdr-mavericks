@@ -41,7 +41,7 @@ export default class Status {
       .gap(10)
       .items_center()
       .font_family(FONT)
-      .text_size(11)
+      .text_size(10.5)
       .child(gradient("#ededed", "#dedede", 180))
       .child(hairline("#b0b0b0", "top"))
       .child(div().relative().flex_none().w(13).h(13).child(icon("terminal", 12, M.textDim)))

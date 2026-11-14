@@ -79,7 +79,7 @@ export default class Pane {
       .font_family(FONT)
       .when(!bottom, el => el.border_b(1))
       .when(bottom, el => el.border_t(1))
-      .border_color("#b8b8b8")
+      .border_color("#a8a8a8")
       .child(gradient(on ? "#f2f2f2" : "#f5f5f5", on ? "#e4e4e4" : "#ededed", 180))
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click(() => run("pane.focus", { pane }))
