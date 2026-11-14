@@ -25,7 +25,8 @@ herdr-app do layout.switch --name mavericks
 |---|---|
 | `layouts/mavericks.json` | 整窗结构：chrome 条、侧栏、标签栏、pane、状态栏；`titlebar: none`，系统交通灯画在 `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | 浅色主题：10.9 的灰阶 chrome、系统蓝强调色、Terminal.app Basic 的 16 色 |
-| `mods/mavericks/` | 自绘部件，按 `props.role` 分工：`chrome`、`tabs`、`pane`、`status` |
+| `themes/mavericks-dark.json` | 黑底变体：chrome 不变，终端换 Terminal.app Homebrew 的黑底配色 |
+| `mods/mavericks/` | 自绘部件，按 `props.role` 分工：`chrome`、`tabs`、`pane`、`status`、`footer` |
 | `mods/mavericks-spaces/` | 侧栏空间列表（克隆自 Herdr 的 `spaces`，只改外观：字体、行高、圆角、系统蓝选中） |
 | `mods/mavericks-agents/` | 侧栏 agent 列表（克隆自 `agents`，同上） |
 | `mods/mavericks-menu/` | 10.9 式上下文菜单（无图标、22px 行、蓝色选中、快捷键右对齐） |
@@ -35,14 +36,16 @@ herdr-app do layout.switch --name mavericks
 ## 交互
 
 - 整条 chrome 可拖动窗口；按钮都做了 `stop_propagation`，点按钮不会拖窗。
-- 左边一组视图控件：侧栏开关、向右分屏、向下分屏、查找；中间居中窗口标题（`空间 — 标签`）；右边新建标签页。
-- 标签：点击切换、双击改名、拖动排序、右键菜单、滚轮切上下一个。
+- 左边是侧栏开关；中间居中窗口标题（`空间 — 标签`）；右边依次是 Files / Changes（布局里有面板时）、向右分屏、向下分屏、查找、新建标签页。
+- 标签：点击切换、双击改名、拖动排序、右键菜单、滚轮切上下一个。关闭按钮和状态位固定占位，悬停时只变可见度，标签宽度不会跳。
+- 侧栏底部是 Settings 与 Add machine；侧栏收窄成图标轨时只显示图标。
 - 侧栏空间：点击切换、右键菜单、拖动排序；agent 行点击跳到对应 pane。
 - pane 标题：点击聚焦、双击缩放；悬停露出分屏 / 缩放 / 关闭。
 
 ## 已知边界
 
 - Herdr 自带的部分弹层没法换皮：关闭确认、重命名输入、新建标签页菜单、picker、Settings 等仍用 Herdr 自己的 mod，只跟随主题色。右键菜单已换成 `mavericks-menu`。
+- Files / Changes 右侧面板用的是 Herdr 自带 mod（默认隐藏），只跟随主题色，行高、图标还是 Herdr 的样子。
 - `mavericks-spaces` / `mavericks-agents` 是 Herdr 0.1.15 的克隆，Herdr 升级后如果内部数据或 API 变了，这两个要跟着更新（或重新 `mod.clone` 再套用本仓库的样式改动）。
 - 没做 Dock、Launchpad、菜单栏、音效：它们和窗口内容无关，或需要额外的常驻悬浮块。
-- 终端是白底（Terminal.app Basic）。想要黑底，把 `themes/mavericks.json` 的 `background` / `foreground` / `ansi` 换成深色即可。
+- 终端默认白底（Terminal.app Basic）。布局主题是 `{ light: "mavericks", dark: "mavericks-dark" }`：系统切到深色外观，或在上方主题菜单里选 `mavericks-dark`，终端就变黑底（Terminal.app Homebrew）。

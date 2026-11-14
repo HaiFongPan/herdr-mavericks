@@ -4,6 +4,7 @@
 //   tabs    Safari 式标签栏
 //   pane    每个 pane 的标题栏
 //   status  底部状态条
+//   footer  侧栏底部的 Settings / Add machine
 
 import { View, div } from "gpui-kit";
 import { props } from "herdr";
@@ -11,8 +12,9 @@ import Chrome from "./chrome.js";
 import Tabs from "./tabs.js";
 import Pane from "./pane.js";
 import Status from "./status.js";
+import Footer from "./footer.js";
 
-const ROLES = { chrome: Chrome, tabs: Tabs, pane: Pane, status: Status };
+const ROLES = { chrome: Chrome, tabs: Tabs, pane: Pane, status: Status, footer: Footer };
 
 export default class Mavericks extends View {
   init(p, cx) {

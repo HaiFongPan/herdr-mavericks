@@ -56,21 +56,10 @@ export default class Chrome {
       .child(group(
         toolbarButton("mv-sidebar", icon("sidebar", 14, M.textMuted), () => run("layout.toggle", { id: "sidebar" }), {
           toggled: Boolean(sidebarOn),
-          tooltip: "显示或隐藏侧边栏",
+          tooltip: "Toggle Sidebar",
         }),
       ))
       .child(h_flex().relative().flex_none().w(1).h(20).bg("#c2c2c2"))
-      .child(
-        h_flex()
-          .relative()
-          .flex_none()
-          .items_center()
-          .child(segment("mv-split-right", icon("split-right", 14, M.textMuted), () => run("pane.split", { direction: "right" }), { first: true, tooltip: "向右分屏" }))
-          .child(segment("mv-split-down", icon("split-down", 14, M.textMuted), () => run("pane.split", { direction: "down" }), { last: true, tooltip: "向下分屏" })),
-      )
-      .child(group(
-        toolbarButton("mv-search", icon("search", 14, M.textMuted), () => run("terminal.search"), { tooltip: "在终端中查找" }),
-      ))
       .child(
         div()
           .relative()
@@ -88,24 +77,27 @@ export default class Chrome {
           ),
       )
       .when(panel, el => el.child(group(
-        toolbarButton("mv-files", [icon("files", 14, panelOn("files") ? "#ffffff" : M.textMuted), ui(div()).child("文件")], () => {
+        toolbarButton("mv-files", [icon("files", 14, panelOn("files") ? "#ffffff" : M.textMuted), ui(div()).child("Files")], () => {
           if (panelOn("files")) run("layout.hide", { id: "panel" });
           else {
             run("layout.select", { stack: "panel-body", child: "files" });
             run("layout.show", { id: "panel" });
           }
-        }, { toggled: Boolean(panelOn("files")), tooltip: "文件面板" }),
-        toolbarButton("mv-changes", [icon("changes", 14, panelOn("changes") ? "#ffffff" : M.textMuted), ui(div()).child("改动")], () => {
+        }, { toggled: Boolean(panelOn("files")), tooltip: "Files" }),
+        toolbarButton("mv-changes", [icon("changes", 14, panelOn("changes") ? "#ffffff" : M.textMuted), ui(div()).child("Changes")], () => {
           if (panelOn("changes")) run("layout.hide", { id: "panel" });
           else {
             run("layout.select", { stack: "panel-body", child: "changes" });
             run("layout.show", { id: "panel" });
           }
-        }, { toggled: Boolean(panelOn("changes")), tooltip: "改动面板" }),
+        }, { toggled: Boolean(panelOn("changes")), tooltip: "Changes" }),
       )))
       .child(group(
+        segment("mv-split-right", icon("split-right", 14, M.textMuted), () => run("pane.split", { direction: "right" }), { first: true, tooltip: "Split Right" }),
+        segment("mv-split-down", icon("split-down", 14, M.textMuted), () => run("pane.split", { direction: "down" }), { last: true, tooltip: "Split Down" }),
+        toolbarButton("mv-search", icon("search", 14, M.textMuted), () => run("terminal.search"), { tooltip: "Find in Terminal" }),
         toolbarButton("mv-new-tab", icon("plus", 14, M.text), () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 }), {
-          tooltip: "新建标签页",
+          tooltip: "New Tab",
         }),
       ));
   }

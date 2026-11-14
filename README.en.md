@@ -26,7 +26,8 @@ like a layout belongs to it).
 |---|---|
 | `layouts/mavericks.json` | The whole window: chrome bar, sidebar, tab bar, panes, status bar. `titlebar: none`; the system traffic lights sit at `traffic_lights [12, 13]` |
 | `themes/mavericks.json` | Light theme: 10.9 chrome greys, system-blue accent, Terminal.app Basic 16 colors |
-| `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `chrome`, `tabs`, `pane`, `status` |
+| `themes/mavericks-dark.json` | Dark terminal variant: same chrome, Terminal.app Homebrew colors |
+| `mods/mavericks/` | Hand-drawn parts, dispatched by `props.role`: `chrome`, `tabs`, `pane`, `status`, `footer` |
 | `mods/mavericks-spaces/` | Spaces sidebar (cloned from Herdr's `spaces`, looks only: font, row height, radius, system-blue selection) |
 | `mods/mavericks-agents/` | Agents sidebar (cloned from `agents`, same treatment) |
 | `mods/mavericks-menu/` | 10.9 context menu: no icons, 22px rows, blue selection, right-aligned shortcuts |
@@ -37,10 +38,11 @@ Herdr falls back to Geist / JetBrains Mono.
 ## Interactions
 
 - The whole chrome drags the window; every button stops propagation on mouse-down.
-- Left group: sidebar toggle, split right, split down, find. Center: window title
-  (`space — tab`). Right: new tab.
+- Left: sidebar toggle. Center: window title (`space — tab`). Right: Files / Changes (when the
+  layout has the panel), split right, split down, find, new tab.
 - Tabs: click to select, double-click to rename, drag to reorder, right-click for the menu,
-  scroll to switch.
+  scroll to switch. The close button and status slot keep their width, so tabs never jump.
+- The sidebar footer holds Settings and Add machine; it collapses to icons on the rail.
 - Spaces: click to select, right-click for the menu, drag to reorder. An agent row focuses
   its pane.
 - Pane title: click to focus, double-click to zoom; hovering reveals split / zoom / close.
@@ -52,9 +54,12 @@ Herdr falls back to Geist / JetBrains Mono.
   colors. The context menu has been replaced by `mavericks-menu`.
 - `mavericks-spaces` / `mavericks-agents` are clones of Herdr 0.1.15. When Herdr's internals
   or APIs change, re-clone and re-apply the styling from this repo.
+- The Files / Changes panel uses Herdr's own mods (hidden by default); it follows theme colors
+  but keeps Herdr's row heights and icons.
 - No Dock, Launchpad, menu bar or sounds: they are outside the window content, or need an
   extra always-on floating block.
-- The terminal is light (Terminal.app Basic). For a dark terminal, change `background`,
-  `foreground` and the `ansi` palette in `themes/mavericks.json`.
+- The terminal defaults to light (Terminal.app Basic). The layout theme is
+  `{ light: "mavericks", dark: "mavericks-dark" }`: switch the system to dark appearance, or
+  pick `mavericks-dark` in the theme menu, for a black terminal (Terminal.app Homebrew).
 - `herdr-app shot` does not include the macOS system traffic lights (the system draws them
   above the layout), so they are missing from `preview.png`.

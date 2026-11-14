@@ -31,39 +31,39 @@ function items(p, git) {
       return [
         ...(inTab
           ? [
-              ["向右分屏", "pane.split", { direction: "right", pane: tg.pane }],
-              ["向下分屏", "pane.split", { direction: "down", pane: tg.pane }],
-              ["缩放", "pane.zoom", { pane: tg.pane }],
+              ["Split Right", "pane.split", { direction: "right", pane: tg.pane }],
+              ["Split Down", "pane.split", { direction: "down", pane: tg.pane }],
+              ["Zoom", "pane.zoom", { pane: tg.pane }],
             ]
           : []),
         ...(term
           ? [
               toProgram
-                ? ["使用 Herdr 右键菜单", "terminal.right_click", { terminal: term.address, to: "menu" }]
-                : ["把右键送给终端", "terminal.right_click", { terminal: term.address, to: "program" }],
+                ? ["Use Herdr Right-click Menu", "terminal.right_click", { terminal: term.address, to: "menu" }]
+                : ["Send Right-clicks to Pane", "terminal.right_click", { terminal: term.address, to: "program" }],
             ]
           : []),
-        ...(parent ? [[`送回 ${parent.name || parent.address}`, "terminal.park", { terminal: term.address }]] : []),
-        ...(inTab ? [["关闭面板", "pane.close", { pane: tg.pane }]] : []),
+        ...(parent ? [[`Send back to ${parent.name || parent.address}`, "terminal.park", { terminal: term.address }]] : []),
+        ...(inTab ? [["Close Pane", "pane.close", { pane: tg.pane }]] : []),
       ];
     }
     case "tab":
       return [
-        ["重命名", "tab.rename", { id: tg.id }],
-        ["新建标签页", "tab.new", { space: tg.space }],
-        ["关闭", "tab.close", { id: tg.id }],
+        ["Rename", "tab.rename", { id: tg.id }],
+        ["New Tab", "tab.new", { space: tg.space }],
+        ["Close", "tab.close", { id: tg.id }],
       ];
     case "space":
       return [
-        ["重命名", "space.rename", { id: tg.id }],
-        ...(git ? [["新建 worktree", "worktree", { space: tg.id, action: "new" }], ["打开 worktree", "worktree", { space: tg.id, action: "open" }]] : []),
-        ...(git === "linked" ? [["移除 worktree", "worktree", { space: tg.id, action: "remove" }]] : []),
-        ["关闭", "space.close", { id: tg.id }],
+        ["Rename", "space.rename", { id: tg.id }],
+        ...(git ? [["New Worktree", "worktree", { space: tg.id, action: "new" }], ["Open Worktree", "worktree", { space: tg.id, action: "open" }]] : []),
+        ...(git === "linked" ? [["Remove Worktree", "worktree", { space: tg.id, action: "remove" }]] : []),
+        ["Close", "space.close", { id: tg.id }],
       ];
     default:
       return [
-        ["新建空间", "space.new", {}],
-        ["快捷键", "app.help", {}],
+        ["New Space", "space.new", {}],
+        ["Keybinds", "app.help", {}],
       ];
   }
 }

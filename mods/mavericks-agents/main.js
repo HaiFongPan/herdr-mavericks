@@ -158,7 +158,7 @@ export default class Agents extends View {
       .p(4)
       .font_family(FONT)
       .text_size(12)
-      .child(div().px(9).pt(3).pb(5).text_size(10.5).font_semibold().text_color(MV.heading).child("排序"))
+      .child(div().px(9).pt(3).pb(5).text_size(10.5).font_semibold().text_color(MV.heading).child("Sort"))
       .children(SORTS.map((s) => h_flex()
         .relative()
         .id(`sort-${s.id}`)

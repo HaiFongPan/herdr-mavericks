@@ -75,47 +75,38 @@ export default class Tabs {
                 : icon("terminal", 13, on ? M.textMuted : M.textDim),
             )
             .child(div().max_w(170).truncate().child(c.zoomed ? `${name} ⌃` : name))
-            .when(c.status === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").flex_none().w(11).h(11).text_color(t.working).spin(900)))
-            .when(c.status === "blocked" || c.status === "done", el => el.child(div().flex_none().w(6).h(6).rounded(3).bg(t[c.status])))
-            .when(on || this.hovered === c.id, el => el.child(
-              div()
-                .id(`close-${c.id}`)
-                .flex_none()
-                .w(13)
-                .h(13)
-                .flex()
-                .items_center()
-                .justify_center()
-                .rounded(3)
-                .text_color(M.textDim)
-                .hover(s => s.bg("#d5d5d5").text_color(M.text))
-                .on_mouse_down("left", stop)
-                .on_click((_e, cx) => { cx.stopPropagation(); run("tab.close", { id: c.id }); })
-                .child(icon("close", 9, M.textDim)),
-            )),
+            // 固定 12px 的状态槽：转圈、状态点或空着，标签宽度不随状态跳动。
+            .child(div()
+              .relative()
+              .flex_none()
+              .w(12)
+              .h(12)
+              .flex()
+              .items_center()
+              .justify_center()
+              .when(c.status === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").w(11).h(11).text_color(t.working).spin(900)))
+              .when(c.status === "blocked" || c.status === "done", el => el.child(div().w(6).h(6).rounded(3).bg(t[c.status]))))
+            // 关闭按钮始终占位，只切换可见度，避免悬停时标签变宽。
+            .child(div()
+              .id(`close-${c.id}`)
+              .relative()
+              .flex_none()
+              .w(13)
+              .h(13)
+              .flex()
+              .items_center()
+              .justify_center()
+              .rounded(3)
+              .when(on || this.hovered === c.id, el => el.hover(s => s.bg("#d5d5d5")))
+              .on_mouse_down("left", stop)
+              .on_click((_e, cx) => { cx.stopPropagation(); run("tab.close", { id: c.id }); })
+              .child(icon("close", 9, on || this.hovered === c.id ? M.textDim : "#00000000"))),
         )
         .on_hover((on2, cx) => {
           const want = on2 ? c.id : this.hovered === c.id ? null : this.hovered;
           if (want !== this.hovered) { this.hovered = want; cx.notify(); }
         });
     };
-
-    const plus = h_flex()
-      .id("tab-new")
-      .relative()
-      .flex_none()
-      .w(24)
-      .h(22)
-      .items_center()
-      .justify_center()
-      .rounded(4)
-      .border(1)
-      .border_color("#b8b8b8")
-      .hover(s => s.bg("#ededed"))
-      .on_mouse_down("left", stop)
-      .on_click((_e, cx) => { cx.stopPropagation(); openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 }); })
-      .child(gradient("#fbfbfb", "#e4e4e4", 180))
-      .child(div().relative().child(icon("plus", 13, M.text)));
 
     return h_flex()
       .id("mv-tabbar")
@@ -143,7 +134,6 @@ export default class Tabs {
           .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
           .on_mouse_up("left", () => { this.pressed = null; })
           .children(shown.map(item)),
-      )
-      .child(plus);
+      );
   }
 }

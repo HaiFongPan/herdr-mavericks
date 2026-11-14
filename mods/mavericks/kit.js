@@ -115,7 +115,7 @@ export function toolbarButton(id, content, onClick, o = {}) {
     .hover(s => s.bg(o.toggled ? "#c9c9c9" : "#ededed"))
     .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
     .child(gradient(bgFrom, bgTo, 180))
-    .child(div().relative().flex().items_center().gap(5).text_size(11.5).text_color(text).child(content));
+    .child(div().relative().flex().items_center().gap(5).text_size(11.5).text_color(text).children(Array.isArray(content) ? content : [content]));
   if (o.disabled) el = el.opacity(0.45);
   else el = el.cursor_pointer().on_click((_e, cx) => {
     cx.stop_propagation();
